@@ -20,11 +20,18 @@ import type { UserService } from '../user/user.service.js';
 import { ValidationError } from '../../shared/errors.js';
 import { toObjectId } from '../../shared/ids.js';
 import type { PaginationQuery, PaginationResult } from '../../shared/pagination.js';
+import type { MmrCoreService } from './game.mmr-core.service.js';
 
+/**
+ * Сервис игр.
+ * Содержит бизнес-логику: создание матчей, запись сетов, управление жизненным циклом,
+ * расчёт и применение MMR изменений.
+ */
 export class GameService {
   constructor(
     private readonly repo: GameRepository,
     private readonly userService: UserService,
+    private readonly mmrCoreService: MmrCoreService,
   ) {}
 
   async create(input: CreateGameInput): Promise<IGame> {
@@ -61,6 +68,9 @@ export class GameService {
       player2MmrChange: null,
       player1MmrBefore: null,
       player2MmrBefore: null,
+      scheduledAt: input.scheduledAt ?? null,
+      court: input.court ?? null,
+      notes: input.notes ?? null,
       startedAt: null,
       completedAt: null,
       cancelledAt: null,
@@ -126,22 +136,50 @@ export class GameService {
         ? game.player1Id
         : game.player2Id;
 
+      const [player1, player2] = await Promise.all([
+        this.userService.findById(game.player1Id.toString()),
+        this.userService.findById(game.player2Id.toString()),
+      ]);
+      if (!player1) throw new UserNotFoundError(game.player1Id.toString());
+      if (!player2) throw new UserNotFoundError(game.player2Id.toString());
+
+      const p1IsWinner = gameWinnerId.equals(game.player1Id);
+      const { winnerDelta, loserDelta } = this.mmrCoreService.calculateDeltas(
+        p1IsWinner ? player1.mmr : player2.mmr,
+        p1IsWinner ? player2.mmr : player1.mmr,
+        game.format,
+      );
+
+      const player1MmrChange = p1IsWinner ? winnerDelta : loserDelta;
+      const player2MmrChange = p1IsWinner ? loserDelta : winnerDelta;
+
       const updated = await this.repo.pushSetAndComplete(
         game._id,
         newSet,
         currentSetsCount,
         gameWinnerId,
+        {
+          player1MmrBefore: player1.mmr,
+          player2MmrBefore: player2.mmr,
+          player1MmrChange,
+          player2MmrChange,
+        },
       );
 
       if (!updated) {
         throw new InvalidStateTransitionError('in_progress', 'record set (concurrent modification)');
       }
 
-      // TODO: MMR. Когда формула будет утверждена:
-      // 1) посчитать deltas через mmr-модуль;
-      // 2) сохранить player1MmrChange/player2MmrChange + before-snapshots на game;
-      // 3) вызвать UserService.updateMmr для обоих игроков.
-      // Сейчас поля остаются null.
+      await Promise.all([
+        this.userService.applyGameResult(game.player1Id.toString(), {
+          mmrDelta: player1MmrChange,
+          won: p1IsWinner,
+        }),
+        this.userService.applyGameResult(game.player2Id.toString(), {
+          mmrDelta: player2MmrChange,
+          won: !p1IsWinner,
+        }),
+      ]);
 
       return updated;
     }

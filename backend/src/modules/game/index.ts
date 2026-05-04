@@ -1,9 +1,13 @@
 import { GameRepository } from './game.repository.js';
 import { GameService } from './game.service.js';
+import { MmrCoreService } from './game.mmr-core.service.js';
 import { userService } from '../user/index.js';
 
 const repository = new GameRepository();
-export const gameService = new GameService(repository, userService);
+const mmrCoreService = new MmrCoreService();
+
+/** Экземпляр сервиса игр (singleton) */
+export const gameService = new GameService(repository, userService, mmrCoreService);
 
 export { GameService };
 export type { IGame, ISet, GameFormat, GameStatus } from './game.model.js';
