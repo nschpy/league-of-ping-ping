@@ -1,0 +1,176 @@
+import { Types } from 'mongoose';
+import { GameRepository } from './game.repository.js';
+import type { IGame } from './game.model.js';
+import type { CreateGameInput, RecordSetInput, GameFilter } from './game.types.js';
+import {
+  GameNotFoundError,
+  InvalidStateTransitionError,
+  InvalidSetScoreError,
+  SetLimitExceededError,
+} from './game.errors.js';
+import {
+  isValidSetScore,
+  requiredWins,
+  maxSets,
+  tallyWins,
+  isWinCondition,
+} from './game.state.js';
+import { UserNotFoundError } from '../user/user.errors.js';
+import type { UserService } from '../user/user.service.js';
+import { ValidationError } from '../../shared/errors.js';
+import { toObjectId } from '../../shared/ids.js';
+import type { PaginationQuery, PaginationResult } from '../../shared/pagination.js';
+
+export class GameService {
+  constructor(
+    private readonly repo: GameRepository,
+    private readonly userService: UserService,
+  ) {}
+
+  async create(input: CreateGameInput): Promise<IGame> {
+    if (input.player1Id === input.player2Id) {
+      throw new ValidationError('A player cannot play against themselves');
+    }
+
+    const [player1, player2, referee] = await Promise.all([
+      this.userService.findById(input.player1Id),
+      this.userService.findById(input.player2Id),
+      this.userService.findById(input.refereeId),
+    ]);
+
+    if (!player1) throw new UserNotFoundError(input.player1Id);
+    if (player1.role !== 'player') throw new ValidationError(`User ${input.player1Id} is not a player`);
+
+    if (!player2) throw new UserNotFoundError(input.player2Id);
+    if (player2.role !== 'player') throw new ValidationError(`User ${input.player2Id} is not a player`);
+
+    if (!referee) throw new UserNotFoundError(input.refereeId);
+    if (referee.role !== 'referee' && referee.role !== 'admin') {
+      throw new ValidationError(`User ${input.refereeId} is not a referee`);
+    }
+
+    return this.repo.create({
+      player1Id: toObjectId(input.player1Id),
+      player2Id: toObjectId(input.player2Id),
+      refereeId: toObjectId(input.refereeId),
+      format: input.format,
+      status: 'pending',
+      sets: [],
+      winnerId: null,
+      player1MmrChange: null,
+      player2MmrChange: null,
+      player1MmrBefore: null,
+      player2MmrBefore: null,
+      startedAt: null,
+      completedAt: null,
+      cancelledAt: null,
+    });
+  }
+
+  async findById(id: string): Promise<IGame | null> {
+    return this.repo.findById(id);
+  }
+
+  async findAll(filter: GameFilter, page: PaginationQuery): Promise<PaginationResult<IGame>> {
+    return this.repo.findAll(filter, page);
+  }
+
+  async start(id: string): Promise<IGame> {
+    const game = await this.repo.findById(id);
+    if (!game) throw new GameNotFoundError(id);
+    if (game.status !== 'pending') throw new InvalidStateTransitionError(game.status, 'start');
+
+    const updated = await this.repo.updateStatus(game._id, 'in_progress', {
+      startedAt: new Date(),
+    });
+    if (!updated) throw new GameNotFoundError(id);
+    return updated;
+  }
+
+  async recordSet(id: string, input: RecordSetInput): Promise<IGame> {
+    const game = await this.repo.findById(id);
+    if (!game) throw new GameNotFoundError(id);
+    if (game.status !== 'in_progress') {
+      throw new InvalidStateTransitionError(game.status, 'record set');
+    }
+
+    if (!isValidSetScore(input.player1Score, input.player2Score)) {
+      throw new InvalidSetScoreError(input.player1Score, input.player2Score);
+    }
+
+    const currentSetsCount = game.sets.length;
+    if (currentSetsCount >= maxSets(game.format)) {
+      throw new SetLimitExceededError(game.format);
+    }
+
+    const setWinnerId = input.player1Score > input.player2Score
+      ? game.player1Id
+      : game.player2Id;
+
+    const newSet = {
+      setNumber: currentSetsCount + 1,
+      player1Score: input.player1Score,
+      player2Score: input.player2Score,
+      winnerId: setWinnerId,
+    };
+
+    const allSets = [...game.sets, newSet];
+
+    const gameOver =
+      isWinCondition(allSets, game.player1Id, game.format) ||
+      isWinCondition(allSets, game.player2Id, game.format);
+
+    if (gameOver) {
+      const p1Wins = tallyWins(allSets, game.player1Id);
+      const gameWinnerId = p1Wins >= requiredWins(game.format)
+        ? game.player1Id
+        : game.player2Id;
+
+      const updated = await this.repo.pushSetAndComplete(
+        game._id,
+        newSet,
+        currentSetsCount,
+        gameWinnerId,
+      );
+
+      if (!updated) {
+        throw new InvalidStateTransitionError('in_progress', 'record set (concurrent modification)');
+      }
+
+      // TODO: MMR. Когда формула будет утверждена:
+      // 1) посчитать deltas через mmr-модуль;
+      // 2) сохранить player1MmrChange/player2MmrChange + before-snapshots на game;
+      // 3) вызвать UserService.updateMmr для обоих игроков.
+      // Сейчас поля остаются null.
+
+      return updated;
+    }
+
+    const updated = await this.repo.pushSet(game._id, newSet, currentSetsCount);
+    if (!updated) {
+      throw new InvalidStateTransitionError('in_progress', 'record set (concurrent modification)');
+    }
+    return updated;
+  }
+
+  async cancel(id: string): Promise<IGame> {
+    const game = await this.repo.findById(id);
+    if (!game) throw new GameNotFoundError(id);
+
+    if (game.status !== 'pending' && game.status !== 'in_progress') {
+      throw new InvalidStateTransitionError(game.status, 'cancel');
+    }
+
+    const updated = await this.repo.updateStatus(game._id, 'cancelled', {
+      cancelledAt: new Date(),
+    });
+    if (!updated) throw new GameNotFoundError(id);
+    return updated;
+  }
+
+  async delete(id: string): Promise<void> {
+    const game = await this.repo.findById(id);
+    if (!game) throw new GameNotFoundError(id);
+    await this.repo.deleteOne(id);
+  }
+}
