@@ -40,7 +40,20 @@ npm run lint:all
 - Build outputs to `.build/`
 - Entry point: `src/server.ts` → `src/app.ts`
 - All routes under prefix `/api/v1/`
+- API docs: Swagger UI at `GET /docs` (OpenAPI JSON at `GET /docs/json`), Bearer JWT via the **Authorize** button
 - For API development, use the **fastify-best-practices** skill
+
+#### Architecture Pattern: REPOSITORY → SERVICE → ROUTES
+Всегда реализуй паттерн **REPOSITORY → SERVICE → ROUTES**:
+- **REPOSITORY** — доступ к данным (MongoDB через Mongoose), все CRUD операции
+- **SERVICE** — бизнес-логика, валидация, стейт-машины, вычисления
+- **ROUTES** — HTTP эндпоинты, валидация входных данных через JSON Schema
+
+**Перед созданием нового модуля проверь:**
+1. Есть ли уже существующий сервис, который можно расширить/обновить
+2. Можно ли выделить новую функциональность в отдельный small-сервис
+
+**Правило:** сервисы должны быть небольшими. Лучше создать несколько узкоспециализированных сервисов, чем один монолитный.
 
 ```
 backend/src/
@@ -51,6 +64,7 @@ backend/src/
   plugins/
     mongoose.ts                  # mongoose.connect на старте, disconnect через onClose hook
     error-handler.ts             # setErrorHandler: DomainError → HTTP response
+    swagger.ts                   # @fastify/swagger + swagger-ui: OpenAPI docs at /docs, Bearer JWT auth
     jwt.ts                       # @fastify/jwt: app.authenticate, app.requireRole(...roles)
   shared/
     errors.ts                    # DomainError, NotFoundError, ConflictError, ValidationError, InvalidStateError,
@@ -93,7 +107,9 @@ backend/src/
       leaderboard.service.ts     # getLeaderboard (sorted by mmr, tier/search filter), getUserRank
       leaderboard.routes.ts      # GET /leaderboard, GET /leaderboard/me/rank
     mmr/
+      mmr.service.ts             # forecast(aId, bId, format) — Elo win probability + delta preview
       mmr.routes.ts              # GET /mmr/forecast?aId=&bId=&format= → expA/expB/aWin/bWin
+      index.ts                   # barrel + singleton mmrService
 ```
 
 #### Сущности

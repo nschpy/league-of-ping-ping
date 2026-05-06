@@ -3,6 +3,8 @@
  * @param key - Имя переменной окружения
  * @throws Error если переменная не задана или пустая
  */
+import dotenv from 'dotenv';
+dotenv.config();
 function getRequired(key) {
     const value = process.env[key];
     if (value === undefined || value === '') {

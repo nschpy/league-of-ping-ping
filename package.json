@@ -4,7 +4,9 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build:backend": "cd backend && npm run build"
+    "build:backend": "cd backend && npm run start:dev",
+    "build:frontend": "cd frontend && npm run dev",
+    "build:all": "concurrently \"npm run build:backend\" \"npm run build:frontend\""
   },
   "repository": {
     "type": "git",
@@ -16,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/nschpy/league-of-ping-ping/issues"
   },
-  "homepage": "https://github.com/nschpy/league-of-ping-ping#readme"
+  "homepage": "https://github.com/nschpy/league-of-ping-ping#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }

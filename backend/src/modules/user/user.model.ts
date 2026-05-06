@@ -120,7 +120,6 @@ const userSchema = new Schema<IUser>(
     },
     recentResults: {
       type: String,
-      required: true,
       default: '',
       maxlength: 6,
     },

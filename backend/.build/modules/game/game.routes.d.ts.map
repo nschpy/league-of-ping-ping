@@ -1,1 +1,1 @@
-{"version":3,"file":"game.routes.d.ts","sourceRoot":"","sources":["../../../src/modules/game/game.routes.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,SAAS,CAAC;AAiClD,QAAA,MAAM,UAAU,EAAE,kBAuIjB,CAAC;AAEF,eAAe,UAAU,CAAC"}
+{"version":3,"file":"game.routes.d.ts","sourceRoot":"","sources":["../../../src/modules/game/game.routes.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,SAAS,CAAC;AA8ClD,QAAA,MAAM,UAAU,EAAE,kBA4LjB,CAAC;AAEF,eAAe,UAAU,CAAC"}

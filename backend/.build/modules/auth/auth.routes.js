@@ -1,6 +1,8 @@
 import { AuthService } from './auth.service.js';
 import { userService } from '../user/index.js';
 const signUpSchema = {
+    tags: ['Auth'],
+    summary: 'Register a new user',
     body: {
         type: 'object',
         required: ['displayName', 'username', 'email', 'password'],
@@ -17,6 +19,8 @@ const signUpSchema = {
     },
 };
 const signInSchema = {
+    tags: ['Auth'],
+    summary: 'Sign in',
     body: {
         type: 'object',
         required: ['email', 'password'],
@@ -39,7 +43,7 @@ const authRoutes = async (fastify) => {
         const result = await authService.signIn(body);
         return reply.send(result);
     });
-    fastify.get('/me', { preHandler: fastify.authenticate }, async (request, reply) => {
+    fastify.get('/me', { schema: { tags: ['Auth'], summary: 'Current user', security: [{ bearerAuth: [] }] }, preHandler: fastify.authenticate }, async (request, reply) => {
         const user = await userService.findById(request.user.sub);
         if (!user)
             return reply.status(404).send({ error: 'NotFound', message: 'User not found', statusCode: 404 });

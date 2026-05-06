@@ -3,6 +3,7 @@ import { env } from './config/env.js';
 import mongoosePlugin from './plugins/mongoose.js';
 import errorHandlerPlugin from './plugins/error-handler.js';
 import jwtPlugin from './plugins/jwt.js';
+import swaggerPlugin from './plugins/swagger.js';
 import fastifyCors from '@fastify/cors';
 import authRoutes from './modules/auth/auth.routes.js';
 import userRoutes from './modules/user/user.routes.js';
@@ -15,7 +16,8 @@ export async function buildApp() {
     await app.register(mongoosePlugin, { uri: env.mongodbUri });
     await app.register(fastifyCors, { origin: env.corsOrigins });
     await app.register(jwtPlugin);
-    app.get('/', async () => ({ status: 'ok' }));
+    await app.register(swaggerPlugin);
+    app.get('/', { schema: { tags: ['Health'], summary: 'Service health check' } }, async () => ({ status: 'ok' }));
     await app.register(authRoutes, { prefix: '/api/v1/auth' });
     await app.register(userRoutes, { prefix: '/api/v1/users' });
     await app.register(gameRoutes, { prefix: '/api/v1/games' });

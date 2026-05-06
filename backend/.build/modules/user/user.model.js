@@ -77,7 +77,6 @@ const userSchema = new Schema({
     },
     recentResults: {
         type: String,
-        required: true,
         default: '',
         maxlength: 6,
     },
