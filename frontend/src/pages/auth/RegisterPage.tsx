@@ -5,9 +5,7 @@ import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { AuthModeToggle } from './components/AuthModeToggle'
-import { SocialButtons } from './components/SocialButtons'
 import { AuthFooter } from './components/AuthFooter'
 import { registerSchema, type RegisterInput } from '@/lib/auth-schemas'
 import { api } from '@/lib/api'
@@ -66,12 +64,6 @@ export function RegisterPage() {
         <Button type="submit" disabled={isSubmitting} className="h-12 w-full uppercase tracking-[0.12em] text-[14px]" style={{ fontFamily: 'var(--font-display)', boxShadow: '0 0 0 1px var(--color-primary), 0 4px 0 -2px rgba(255,91,31,.35)' }}>
           {isSubmitting ? '...' : 'Создать аккаунт →'}
         </Button>
-        <div className="flex items-center gap-3 text-muted-foreground/60 text-[12px] my-1">
-          <Separator className="flex-1" />
-          <span style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.16em' }} className="uppercase">или</span>
-          <Separator className="flex-1" />
-        </div>
-        <SocialButtons />
       </div>
       <AuthFooter />
     </form>

@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom'
 export function AuthModeToggle() {
   return (
     <div
-      className="inline-flex p-1 rounded-[4px] border border-border self-start mb-9"
+      className="inline-flex p-1 rounded-[4px] border border-border self-center mb-9"
       style={{ background: 'var(--color-card)' }}
     >
       {(['/login', '/register'] as const).map((path, i) => (
