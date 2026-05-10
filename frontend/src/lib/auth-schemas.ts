@@ -11,6 +11,7 @@ export const nicknameSchema = z
 export const loginSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
+  // sent to backend — controls JWT TTL: true → 30d, false/undefined → 1d
   rememberMe: z.boolean().optional(),
 })
 

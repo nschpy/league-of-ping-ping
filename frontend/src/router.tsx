@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 // Lazy placeholders — Task C will replace these with real components
@@ -19,14 +19,12 @@ export const router = createBrowserRouter([
     path: '/',
     element: <ProtectedRoute />,
     children: [
-      {
-        path: 'dashboard',
-        element: <DashboardPage />,
-      },
+      { index: true, element: <Navigate to="/dashboard" replace /> },
+      { path: 'dashboard', element: <DashboardPage /> },
     ],
   },
   {
     path: '*',
-    element: <LoginPage />,
+    element: <div style={{ padding: '2rem', color: '#fff' }}>404 — страница не найдена</div>,
   },
 ])
