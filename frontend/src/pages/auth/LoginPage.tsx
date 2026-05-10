@@ -53,8 +53,8 @@ export function LoginPage() {
         <div className="flex justify-between items-center">
           <label className="flex items-center gap-2 text-[13px] text-muted-foreground cursor-pointer">
             <input type="checkbox" {...register('rememberMe')} className="sr-only peer" />
-            <span className="size-4 rounded-[2px] border border-border bg-transparent peer-checked:bg-primary flex items-center justify-center transition-colors">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-0 peer-checked:opacity-100 transition-opacity">
+            <span className="size-4 rounded-[2px] border border-border bg-transparent peer-checked:bg-primary peer-checked:[&>svg]:opacity-100 flex items-center justify-center transition-colors">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-0 transition-opacity">
                 <path d="M2 5L4 7L8 3" stroke="#0b0b0f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
