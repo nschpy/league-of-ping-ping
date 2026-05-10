@@ -1,19 +1,17 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
-
-// Lazy placeholders — Task C will replace these with real components
-const LoginPage = () => <div>Login page — Task C</div>
-const RegisterPage = () => <div>Register page — Task C</div>
-const DashboardPage = () => <div>Dashboard — Task C</div>
+import { AuthLayout } from '@/pages/auth/AuthLayout'
+import { LoginPage } from '@/pages/auth/LoginPage'
+import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 
 export const router = createBrowserRouter([
   {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/register',
-    element: <RegisterPage />,
+    element: <AuthLayout />,
+    children: [
+      { path: '/login', element: <LoginPage /> },
+      { path: '/register', element: <RegisterPage /> },
+    ],
   },
   {
     path: '/',
@@ -25,6 +23,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <div style={{ padding: '2rem', color: '#fff' }}>404 — страница не найдена</div>,
+    element: <div style={{ padding: '2rem', color: '#fff', fontFamily: 'Inter' }}>404 — страница не найдена</div>,
   },
 ])
