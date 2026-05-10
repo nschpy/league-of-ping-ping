@@ -1,4 +1,3 @@
-import type { FastifyInstance } from 'fastify'
 import { hashPassword, verifyPassword } from '../../utils/password.js'
 import { conflict, unauthorized } from '../../utils/errors.js'
 import * as authRepository from './auth.repository.js'
@@ -6,13 +5,11 @@ import type { RegisterBody_type, LoginBody_type } from './auth.schemas.js'
 import type { PublicUser } from '../../core/models/User.js'
 
 interface AuthResult {
-  token: string
   user: PublicUser
 }
 
 export async function register(
   body: RegisterBody_type,
-  app: FastifyInstance,
 ): Promise<AuthResult> {
   const existingEmail = await authRepository.findByEmail(body.email)
   if (existingEmail !== null) {
@@ -25,24 +22,26 @@ export async function register(
   }
 
   const passwordHash = await hashPassword(body.password)
-  const user = await authRepository.createUser({
-    email: body.email,
-    nickname: body.nickname,
-    passwordHash,
-  })
 
-  const publicUser = user.toPublicJSON()
-  const token = app.jwt.sign(
-    { sub: publicUser.id, email: publicUser.email, nickname: publicUser.nickname, role: publicUser.role },
-    { expiresIn: '1d' },
-  )
+  let user
+  try {
+    user = await authRepository.createUser({
+      email: body.email,
+      nickname: body.nickname,
+      passwordHash,
+    })
+  } catch (err) {
+    if (err instanceof Error && 'code' in err && (err as { code: unknown }).code === 11000) {
+      throw conflict('Email or nickname is already in use')
+    }
+    throw err
+  }
 
-  return { token, user: publicUser }
+  return { user: user.toPublicJSON() }
 }
 
 export async function login(
   body: LoginBody_type,
-  app: FastifyInstance,
 ): Promise<AuthResult> {
   const user = await authRepository.findByEmail(body.email)
   if (user === null) {
@@ -54,12 +53,5 @@ export async function login(
     throw unauthorized('Invalid email or password')
   }
 
-  const publicUser = user.toPublicJSON()
-  const expiresIn = body.rememberMe === true ? '30d' : '1d'
-  const token = app.jwt.sign(
-    { sub: publicUser.id, email: publicUser.email, nickname: publicUser.nickname, role: publicUser.role },
-    { expiresIn },
-  )
-
-  return { token, user: publicUser }
+  return { user: user.toPublicJSON() }
 }

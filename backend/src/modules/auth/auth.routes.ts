@@ -1,6 +1,5 @@
 import fp from 'fastify-plugin'
 import type { FastifyInstance } from 'fastify'
-import { TypeBoxValidatorCompiler } from '@fastify/type-provider-typebox'
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { RegisterBody, LoginBody, AuthResponse, MeResponse, ErrorResponse } from './auth.schemas.js'
 import * as authService from './auth.service.js'
@@ -9,7 +8,6 @@ import { unauthorized } from '../../utils/errors.js'
 
 async function authRoutesPlugin(app: FastifyInstance): Promise<void> {
   const typedApp = app.withTypeProvider<TypeBoxTypeProvider>()
-  typedApp.setValidatorCompiler(TypeBoxValidatorCompiler)
 
   typedApp.post('/auth/register', {
     schema: {
@@ -21,8 +19,12 @@ async function authRoutesPlugin(app: FastifyInstance): Promise<void> {
       tags: ['auth'],
     },
     handler: async (request, reply) => {
-      const result = await authService.register(request.body, app)
-      return reply.status(201).send(result)
+      const { user } = await authService.register(request.body)
+      const token = app.jwt.sign(
+        { sub: user.id, email: user.email, nickname: user.nickname, role: user.role },
+        { expiresIn: '1d' },
+      )
+      return reply.status(201).send({ token, user })
     },
   })
 
@@ -36,8 +38,13 @@ async function authRoutesPlugin(app: FastifyInstance): Promise<void> {
       tags: ['auth'],
     },
     handler: async (request, reply) => {
-      const result = await authService.login(request.body, app)
-      return reply.status(200).send(result)
+      const { user } = await authService.login(request.body)
+      const expiresIn = request.body.rememberMe === true ? '30d' : '1d'
+      const token = app.jwt.sign(
+        { sub: user.id, email: user.email, nickname: user.nickname, role: user.role },
+        { expiresIn },
+      )
+      return reply.status(200).send({ token, user })
     },
   })
 

@@ -34,14 +34,25 @@ export function registerErrorHandler(app: FastifyInstance): void {
       })
     }
 
-    const statusCode = error instanceof Error && 'statusCode' in error && typeof (error as { statusCode: unknown }).statusCode === 'number'
-      ? (error as { statusCode: number }).statusCode
-      : 500
-    const message = error instanceof Error ? error.message : 'An unexpected error occurred'
-    return reply.status(statusCode).send({
-      statusCode,
+    if (
+      error instanceof Error &&
+      'statusCode' in error &&
+      typeof (error as { statusCode: unknown }).statusCode === 'number' &&
+      (error as { statusCode: number }).statusCode < 500
+    ) {
+      const statusCode = (error as { statusCode: number }).statusCode
+      return reply.status(statusCode).send({
+        statusCode,
+        error: 'VALIDATION_ERROR',
+        message: error.message,
+      })
+    }
+
+    app.log.error(error)
+    return reply.status(500).send({
+      statusCode: 500,
       error: 'INTERNAL_SERVER_ERROR',
-      message,
+      message: 'An unexpected error occurred',
     })
   })
 }
