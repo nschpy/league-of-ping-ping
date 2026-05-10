@@ -34,6 +34,7 @@ const userSchema = new Schema<IUser>(
       trim: true,
       minlength: 3,
       maxlength: 20,
+      match: /^[a-zA-Z0-9._-]+$/,
     },
     passwordHash: {
       type: String,
