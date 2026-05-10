@@ -12,8 +12,7 @@ import { AuthFooter } from './components/AuthFooter'
 import { loginSchema, type LoginInput } from '@/lib/auth-schemas'
 import { api } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
-
-interface AuthResponse { token: string; user: { id: string; email: string; nickname: string; mmr: number; role: string } }
+import type { AuthResponse } from '@/lib/types'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -42,20 +41,22 @@ export function LoginPage() {
 
       <div className="flex flex-col gap-[18px]">
         <div>
-          <Label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em' }} className="uppercase text-muted-foreground mb-2 block">E-mail</Label>
-          <Input {...register('email')} placeholder="player@league.tennis" className="h-12 bg-card border-border" />
+          <Label htmlFor="login-email" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em' }} className="uppercase text-muted-foreground mb-2 block">E-mail</Label>
+          <Input id="login-email" {...register('email')} placeholder="player@league.tennis" autoComplete="email" className="h-12 bg-card border-border" />
           {errors.email && <p className="text-destructive text-xs mt-1">{errors.email.message}</p>}
         </div>
         <div>
-          <Label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em' }} className="uppercase text-muted-foreground mb-2 block">Пароль</Label>
-          <Input {...register('password')} type="password" placeholder="••••••••••" className="h-12 bg-card border-border" />
+          <Label htmlFor="login-password" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em' }} className="uppercase text-muted-foreground mb-2 block">Пароль</Label>
+          <Input id="login-password" {...register('password')} type="password" placeholder="••••••••••" autoComplete="current-password" className="h-12 bg-card border-border" />
           {errors.password && <p className="text-destructive text-xs mt-1">{errors.password.message}</p>}
         </div>
         <div className="flex justify-between items-center">
           <label className="flex items-center gap-2 text-[13px] text-muted-foreground cursor-pointer">
             <input type="checkbox" {...register('rememberMe')} className="sr-only peer" />
-            <span className="size-4 rounded-[2px] border border-border bg-primary flex items-center justify-center peer-checked:opacity-100 opacity-60 transition-opacity">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5L4 7L8 3" stroke="#0b0b0f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <span className="size-4 rounded-[2px] border border-border bg-transparent peer-checked:bg-primary flex items-center justify-center transition-colors">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-0 peer-checked:opacity-100 transition-opacity">
+                <path d="M2 5L4 7L8 3" stroke="#0b0b0f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </span>
             Запомнить меня
           </label>

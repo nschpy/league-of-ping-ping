@@ -12,8 +12,7 @@ import { AuthFooter } from './components/AuthFooter'
 import { registerSchema, type RegisterInput } from '@/lib/auth-schemas'
 import { api } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
-
-interface AuthResponse { token: string; user: { id: string; email: string; nickname: string; mmr: number; role: string } }
+import type { AuthResponse } from '@/lib/types'
 
 const fieldClass = 'h-12 bg-card border-border'
 const labelStyle = { fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em' } as const
@@ -44,21 +43,21 @@ export function RegisterPage() {
 
       <div className="flex flex-col gap-[18px]">
         <div>
-          <Label style={labelStyle} className="uppercase text-muted-foreground mb-2 block">Никнейм</Label>
-          <Input {...register('nickname')} placeholder="thunder.spin" className={fieldClass} />
+          <Label htmlFor="reg-nickname" style={labelStyle} className="uppercase text-muted-foreground mb-2 block">Никнейм</Label>
+          <Input id="reg-nickname" {...register('nickname')} placeholder="thunder.spin" autoComplete="username" className={fieldClass} />
           {errors.nickname
             ? <p className="text-destructive text-xs mt-1">{errors.nickname.message}</p>
             : <p className="text-muted-foreground/60 text-[12px] mt-1.5">будет видно соперникам</p>
           }
         </div>
         <div>
-          <Label style={labelStyle} className="uppercase text-muted-foreground mb-2 block">E-mail</Label>
-          <Input {...register('email')} placeholder="player@league.tennis" className={fieldClass} />
+          <Label htmlFor="reg-email" style={labelStyle} className="uppercase text-muted-foreground mb-2 block">E-mail</Label>
+          <Input id="reg-email" {...register('email')} placeholder="player@league.tennis" autoComplete="email" className={fieldClass} />
           {errors.email && <p className="text-destructive text-xs mt-1">{errors.email.message}</p>}
         </div>
         <div>
-          <Label style={labelStyle} className="uppercase text-muted-foreground mb-2 block">Пароль</Label>
-          <Input {...register('password')} type="password" placeholder="••••••••••" className={fieldClass} />
+          <Label htmlFor="reg-password" style={labelStyle} className="uppercase text-muted-foreground mb-2 block">Пароль</Label>
+          <Input id="reg-password" {...register('password')} type="password" placeholder="••••••••••" autoComplete="new-password" className={fieldClass} />
           {errors.password && <p className="text-destructive text-xs mt-1">{errors.password.message}</p>}
         </div>
       </div>
