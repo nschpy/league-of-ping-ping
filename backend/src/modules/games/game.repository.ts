@@ -13,6 +13,10 @@ export async function create(data: {
   return GameModel.create(data)
 }
 
+export async function findById(id: string): Promise<IGame | null> {
+  return GameModel.findById(id).exec()
+}
+
 export async function findByIdPopulated(id: string): Promise<IGame | null> {
   return GameModel.findById(id).populate('player1Id player2Id refereeId', 'nickname mmr')
 }

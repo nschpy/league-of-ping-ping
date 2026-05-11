@@ -24,8 +24,9 @@ async function userRoutesPlugin(app: FastifyInstance): Promise<void> {
     onRequest: app.authenticate,
     handler: async (request, reply) => {
       const { q, limit = 10 } = request.query
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       const results = await UserModel.find(
-        { nickname: { $regex: q, $options: 'i' }, _id: { $ne: request.user.sub } },
+        { nickname: { $regex: escaped, $options: 'i' }, _id: { $ne: request.user.sub } },
         'nickname mmr',
       ).limit(limit).lean()
       return reply.send(results.map((u) => ({ id: u._id.toString(), nickname: u.nickname, mmr: u.mmr })))

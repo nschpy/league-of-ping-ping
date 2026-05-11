@@ -53,7 +53,17 @@ export async function createGame(dto: {
   return populated
 }
 
+// Returns raw (unpopulated) game — for internal auth checks and business logic
 export async function getGame(id: string): Promise<IGame> {
+  const game = await gameRepository.findById(id)
+  if (game === null) {
+    throw notFound('Game not found')
+  }
+  return game
+}
+
+// Returns populated game — for the GET /games/:id route response
+export async function getGameForView(id: string): Promise<IGame> {
   const game = await gameRepository.findByIdPopulated(id)
   if (game === null) {
     throw notFound('Game not found')

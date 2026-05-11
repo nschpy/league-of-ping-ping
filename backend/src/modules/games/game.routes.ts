@@ -48,7 +48,7 @@ async function gameRoutesPlugin(app: FastifyInstance): Promise<void> {
     },
     onRequest: app.authenticate,
     handler: async (request, reply) => {
-      const game = await gameService.getGame(request.params.id)
+      const game = await gameService.getGameForView(request.params.id)
       return reply.send(game.toPublicJSON())
     },
   })

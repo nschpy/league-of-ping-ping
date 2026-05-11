@@ -15,6 +15,7 @@ export function GameViewPage() {
   const user = useAuthStore((s) => s.user)
   const [game, setGame] = useState<Game | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [mutationError, setMutationError] = useState<string | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const isReferee = !!(game && user && user.id === game.referee.id)
@@ -42,6 +43,16 @@ export function GameViewPage() {
     }
   }, [game?.status, isReferee])
 
+  const addPoint = useCallback(async (scorer: 'p1' | 'p2') => {
+    try {
+      const updated = await api.post<Game>(`/games/${id}/points`, { scorer })
+      setGame(updated)
+      setMutationError(null)
+    } catch (e) {
+      setMutationError(e instanceof Error ? e.message : 'Ошибка')
+    }
+  }, [id])
+
   // Keyboard shortcuts for referee
   useEffect(() => {
     if (!isReferee) return
@@ -54,27 +65,37 @@ export function GameViewPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [isReferee, addPoint])
 
-  const addPoint = useCallback(async (scorer: 'p1' | 'p2') => {
-    const updated = await api.post<Game>(`/games/${id}/points`, { scorer })
-    setGame(updated)
-  }, [id])
-
   async function undoLast() {
-    const updated = await api.del<Game>(`/games/${id}/points/last`)
-    setGame(updated)
+    try {
+      const updated = await api.del<Game>(`/games/${id}/points/last`)
+      setGame(updated)
+      setMutationError(null)
+    } catch (e) {
+      setMutationError(e instanceof Error ? e.message : 'Ошибка')
+    }
   }
 
   async function finalizeSet(p1: number, p2: number) {
-    const updated = await api.post<Game>(`/games/${id}/sets`, {
-      player1Score: p1,
-      player2Score: p2,
-    })
-    setGame(updated)
+    try {
+      const updated = await api.post<Game>(`/games/${id}/sets`, {
+        player1Score: p1,
+        player2Score: p2,
+      })
+      setGame(updated)
+      setMutationError(null)
+    } catch (e) {
+      setMutationError(e instanceof Error ? e.message : 'Ошибка')
+    }
   }
 
   async function cancelGame() {
-    const updated = await api.post<Game>(`/games/${id}/cancel`, {})
-    setGame(updated)
+    try {
+      const updated = await api.post<Game>(`/games/${id}/cancel`, {})
+      setGame(updated)
+      setMutationError(null)
+    } catch (e) {
+      setMutationError(e instanceof Error ? e.message : 'Ошибка')
+    }
   }
 
   if (error) {
@@ -100,6 +121,9 @@ export function GameViewPage() {
     <div className="flex flex-col">
       {game.status === 'completed' && <CompletedBanner game={game} />}
       <GameHeader game={game} isReferee={isReferee} />
+      {mutationError && (
+        <p className="px-5 py-2 text-sm text-destructive">{mutationError}</p>
+      )}
       <Scoreboard
         game={game}
         isReferee={isReferee}
