@@ -18,7 +18,7 @@ export function setWinner(scores: SetScores): 'p1' | 'p2' | null {
 }
 
 export function gameWinner(
-  sets: Array<{ player1Score: number; player2Score: number; completedAt?: Date }>,
+  sets: Array<{ player1Score: number; player2Score: number }>,
   format: GameFormat,
 ): 'p1' | 'p2' | null {
   const target = setsToWin(format)
@@ -26,7 +26,6 @@ export function gameWinner(
   let p2Wins = 0
 
   for (const set of sets) {
-    if (set.completedAt === undefined) continue
     const winner = setWinner({ a: set.player1Score, b: set.player2Score })
     if (winner === 'p1') p1Wins++
     else if (winner === 'p2') p2Wins++

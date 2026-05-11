@@ -1,10 +1,11 @@
 import { Schema, model } from 'mongoose'
 import type { Document, Types } from 'mongoose'
+import type { GameFormat } from '../../modules/games/game.scoring.js'
 
 export interface PublicGame {
   id: string
   status: 'in_progress' | 'completed' | 'cancelled'
-  format: 'bo1' | 'bo3' | 'bo5'
+  format: GameFormat
   player1Id: string
   player2Id: string
   refereeId: string
@@ -40,7 +41,7 @@ export interface IGame extends Document {
   player1Id: Types.ObjectId
   player2Id: Types.ObjectId
   refereeId: Types.ObjectId
-  format: 'bo1' | 'bo3' | 'bo5'
+  format: GameFormat
   status: 'in_progress' | 'completed' | 'cancelled'
   sets: ISetEntry[]
   winnerId: Types.ObjectId | null
