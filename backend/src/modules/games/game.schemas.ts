@@ -27,12 +27,12 @@ export type FinalizeSetBody_type = Static<typeof FinalizeSetBody>
 const PlayerSnapshot = Type.Object({
   id: Type.String(),
   nickname: Type.String(),
-  mmr: Type.Number(),
+  mmr: Type.Integer(),
 })
 
 const SetEntryResponse = Type.Object({
-  player1Score: Type.Number(),
-  player2Score: Type.Number(),
+  player1Score: Type.Integer(),
+  player2Score: Type.Integer(),
   points: Type.Array(
     Type.Object({
       scorer: Type.Union([Type.Literal('p1'), Type.Literal('p2')]),
@@ -55,8 +55,8 @@ export const GameResponse = Type.Object({
   referee: PlayerSnapshot,
   sets: Type.Array(SetEntryResponse),
   winnerId: Type.Union([Type.String(), Type.Null()]),
-  player1MmrBefore: Type.Number(),
-  player2MmrBefore: Type.Number(),
+  player1MmrBefore: Type.Integer(),
+  player2MmrBefore: Type.Integer(),
   player1MmrChange: Type.Union([Type.Number(), Type.Null()]),
   player2MmrChange: Type.Union([Type.Number(), Type.Null()]),
   startedAt: Type.String(),

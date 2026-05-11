@@ -14,6 +14,14 @@ export async function createGame(dto: {
 }): Promise<IGame> {
   const { player1Id, player2Id, format, refereeId } = dto
 
+  if (player1Id === player2Id) {
+    throw badRequest('Player 1 and Player 2 must be different')
+  }
+
+  if (refereeId === player1Id || refereeId === player2Id) {
+    throw badRequest('Referee cannot be a player')
+  }
+
   const [player1, player2] = await Promise.all([
     UserModel.findById(player1Id),
     UserModel.findById(player2Id),
@@ -24,14 +32,6 @@ export async function createGame(dto: {
   }
   if (player2 === null) {
     throw notFound('Player 2 not found')
-  }
-
-  if (player1Id === player2Id) {
-    throw badRequest('Player 1 and Player 2 must be different')
-  }
-
-  if (refereeId === player1Id || refereeId === player2Id) {
-    throw badRequest('Referee cannot be a player')
   }
 
   const game = await gameRepository.create({
@@ -97,10 +97,10 @@ export async function addPoint(
     currentSet.completedAt = new Date()
   }
 
-  await checkAndCompleteGame(game)
-  await gameRepository.save(game)
-
-  const populated = await gameRepository.findByIdPopulated(game.id as string)
+  const commitMmr = await applyCompletionIfNeeded(game)
+  const saved = await gameRepository.save(game)
+  await commitMmr?.()
+  const populated = await gameRepository.findByIdPopulated(saved.id as string)
   if (populated === null) {
     throw notFound('Game not found after update')
   }
@@ -174,15 +174,19 @@ export async function finalizeSet(
     throw badRequest('Set already finalized')
   }
 
+  if (!isSetComplete({ a: dto.player1Score, b: dto.player2Score })) {
+    throw badRequest('Score does not satisfy set completion conditions (reach 11, lead by 2)')
+  }
+
   currentSet.player1Score = dto.player1Score
   currentSet.player2Score = dto.player2Score
   currentSet.completedAt = new Date()
   currentSet.points = []
 
-  await checkAndCompleteGame(game)
-  await gameRepository.save(game)
-
-  const populated = await gameRepository.findByIdPopulated(game.id as string)
+  const commitMmr = await applyCompletionIfNeeded(game)
+  const saved = await gameRepository.save(game)
+  await commitMmr?.()
+  const populated = await gameRepository.findByIdPopulated(saved.id as string)
   if (populated === null) {
     throw notFound('Game not found after update')
   }
@@ -212,14 +216,13 @@ export async function cancelGame(gameId: string, userId: string): Promise<IGame>
   return populated
 }
 
-async function checkAndCompleteGame(game: IGame): Promise<void> {
+async function applyCompletionIfNeeded(game: IGame): Promise<(() => Promise<void>) | null> {
   const winner = gameWinner(game.sets, game.format)
 
   if (winner !== null) {
     game.status = 'completed'
     game.completedAt = new Date()
 
-    // Use toString() to handle both populated and unpopulated ObjectId fields
     const winnerId = winner === 'p1' ? game.player1Id : game.player2Id
     game.winnerId = winnerId
 
@@ -229,20 +232,21 @@ async function checkAndCompleteGame(game: IGame): Promise<void> {
     game.player1MmrChange = p1Delta
     game.player2MmrChange = p2Delta
 
-    // Use the raw ObjectId string (toString handles both populated docs and ObjectIds)
-    await Promise.all([
-      UserModel.findByIdAndUpdate(game.player1Id.toString(), { $inc: { mmr: p1Delta } }),
-      UserModel.findByIdAndUpdate(game.player2Id.toString(), { $inc: { mmr: p2Delta } }),
-    ])
-  } else {
-    // Check if we need to push a new set
-    const lastSet = game.sets[game.sets.length - 1]
-    if (lastSet !== undefined && lastSet.completedAt !== undefined) {
-      const completedSetsCount = game.sets.filter((s) => s.completedAt !== undefined).length
-      const maxSets = setsToWin(game.format) * 2 - 1
-      if (completedSetsCount < maxSets) {
-        game.sets.push({ player1Score: 0, player2Score: 0, points: [] })
-      }
+    const p1Id = game.player1Id.toString()
+    const p2Id = game.player2Id.toString()
+    return async () => {
+      await Promise.all([
+        UserModel.findByIdAndUpdate(p1Id, { $inc: { mmr: p1Delta } }),
+        UserModel.findByIdAndUpdate(p2Id, { $inc: { mmr: p2Delta } }),
+      ])
     }
+  } else {
+    // push new set if last set was just completed and game needs more sets
+    const lastSet = game.sets[game.sets.length - 1]
+    const setsNeeded = setsToWin(game.format) * 2 - 1
+    if (lastSet?.completedAt !== undefined && game.sets.length < setsNeeded) {
+      game.sets.push({ player1Score: 0, player2Score: 0, points: [] })
+    }
+    return null
   }
 }
