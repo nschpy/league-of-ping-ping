@@ -8,6 +8,7 @@ import { mongoosePlugin } from './utils/mongoose.plugin.js'
 import { authPlugin } from './utils/auth.plugin.js'
 import { authRoutes } from './modules/auth/auth.routes.js'
 import { gameRoutes } from './modules/games/game.routes.js'
+import { userRoutes } from './modules/users/user.routes.js'
 import { registerErrorHandler } from './utils/errors.js'
 import { config } from './utils/config.js'
 
@@ -21,6 +22,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(mongoosePlugin)
   await app.register(authPlugin)
   await app.register(authRoutes)
+  await app.register(userRoutes)
   await app.register(gameRoutes)
   return app
 }
