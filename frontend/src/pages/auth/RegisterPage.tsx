@@ -1,0 +1,71 @@
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { AuthModeToggle } from './components/AuthModeToggle'
+import { AuthFooter } from './components/AuthFooter'
+import { registerSchema, type RegisterInput } from '@/lib/auth-schemas'
+import { api } from '@/lib/api'
+import { useAuth } from '@/hooks/useAuth'
+import type { AuthResponse } from '@/lib/types'
+
+const fieldClass = 'h-12 bg-card border-border'
+const labelStyle = { fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em' } as const
+const headStyle = { fontFamily: 'var(--font-display)', fontSize: 38, lineHeight: 1, letterSpacing: 0 } as const
+
+export function RegisterPage() {
+  const navigate = useNavigate()
+  const { setAuth } = useAuth()
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+  })
+
+  const onSubmit = async (data: RegisterInput) => {
+    try {
+      const res = await api.post<AuthResponse>('/auth/register', data)
+      setAuth(res.token, res.user)
+      void navigate('/dashboard')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Ошибка регистрации')
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col max-w-[400px] w-full">
+      <AuthModeToggle />
+      <h2 style={headStyle} className="uppercase text-foreground mb-2">Создать аккаунт</h2>
+      <p className="text-muted-foreground text-[14px] mb-8">Стартовый MMR — 1000. Поехали.</p>
+
+      <div className="flex flex-col gap-[18px]">
+        <div>
+          <Label htmlFor="reg-nickname" style={labelStyle} className="uppercase text-muted-foreground mb-2 block">Никнейм</Label>
+          <Input id="reg-nickname" {...register('nickname')} placeholder="thunder.spin" autoComplete="username" className={fieldClass} />
+          {errors.nickname
+            ? <p className="text-destructive text-xs mt-1">{errors.nickname.message}</p>
+            : <p className="text-muted-foreground/60 text-[12px] mt-1.5">будет видно соперникам</p>
+          }
+        </div>
+        <div>
+          <Label htmlFor="reg-email" style={labelStyle} className="uppercase text-muted-foreground mb-2 block">E-mail</Label>
+          <Input id="reg-email" {...register('email')} placeholder="player@league.tennis" autoComplete="email" className={fieldClass} />
+          {errors.email && <p className="text-destructive text-xs mt-1">{errors.email.message}</p>}
+        </div>
+        <div>
+          <Label htmlFor="reg-password" style={labelStyle} className="uppercase text-muted-foreground mb-2 block">Пароль</Label>
+          <Input id="reg-password" {...register('password')} type="password" placeholder="••••••••••" autoComplete="new-password" className={fieldClass} />
+          {errors.password && <p className="text-destructive text-xs mt-1">{errors.password.message}</p>}
+        </div>
+      </div>
+
+      <div className="mt-7 flex flex-col gap-3">
+        <Button type="submit" disabled={isSubmitting} className="h-12 w-full uppercase tracking-[0.12em] text-[14px]" style={{ fontFamily: 'var(--font-display)', boxShadow: '0 0 0 1px var(--color-primary), 0 4px 0 -2px rgba(255,91,31,.35)' }}>
+          {isSubmitting ? '...' : 'Создать аккаунт →'}
+        </Button>
+      </div>
+      <AuthFooter />
+    </form>
+  )
+}
