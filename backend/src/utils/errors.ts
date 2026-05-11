@@ -24,6 +24,14 @@ export function conflict(message: string): AppError {
   return new AppError(message, 409, 'CONFLICT')
 }
 
+export function notFound(message: string): AppError {
+  return new AppError(message, 404, 'NOT_FOUND')
+}
+
+export function forbidden(message: string): AppError {
+  return new AppError(message, 403, 'FORBIDDEN')
+}
+
 export function registerErrorHandler(app: FastifyInstance): void {
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof AppError) {
