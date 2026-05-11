@@ -6,9 +6,9 @@ export interface PublicGame {
   id: string
   status: 'in_progress' | 'completed' | 'cancelled'
   format: GameFormat
-  player1Id: string
-  player2Id: string
-  refereeId: string
+  player1: { id: string; nickname: string; mmr: number }
+  player2: { id: string; nickname: string; mmr: number }
+  referee: { id: string; nickname: string; mmr: number }
   sets: Array<{
     player1Score: number
     player2Score: number
@@ -160,13 +160,21 @@ const gameSchema = new Schema<IGame>(
 )
 
 gameSchema.methods['toPublicJSON'] = function (this: IGame): PublicGame {
+  const snap = (field: unknown) => {
+    if (field && typeof field === 'object' && 'nickname' in field) {
+      const u = field as { _id: { toString(): string }; nickname: string; mmr: number }
+      return { id: u._id.toString(), nickname: u.nickname, mmr: u.mmr }
+    }
+    return { id: String(field), nickname: '', mmr: 0 }
+  }
+
   return {
     id: (this._id as { toString(): string }).toString(),
     status: this.status,
     format: this.format,
-    player1Id: this.player1Id.toString(),
-    player2Id: this.player2Id.toString(),
-    refereeId: this.refereeId.toString(),
+    player1: snap(this.player1Id),
+    player2: snap(this.player2Id),
+    referee: snap(this.refereeId),
     sets: this.sets.map((s) => {
       const set: PublicGame['sets'][number] = {
         player1Score: s.player1Score,

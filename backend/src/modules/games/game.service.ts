@@ -177,6 +177,7 @@ export async function finalizeSet(
   currentSet.player1Score = dto.player1Score
   currentSet.player2Score = dto.player2Score
   currentSet.completedAt = new Date()
+  currentSet.points = []
 
   await checkAndCompleteGame(game)
   await gameRepository.save(game)
