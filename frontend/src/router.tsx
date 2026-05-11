@@ -6,9 +6,7 @@ import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { AppShell } from '@/components/layout/AppShell'
 import { CreateGamePage } from '@/pages/games/CreateGamePage'
-
-// Temporary placeholder — will be replaced in Task G
-const GameViewPage = () => <div className="p-8 text-foreground">Game View — coming soon</div>
+import { GameViewPage } from '@/pages/games/GameViewPage'
 
 export const router = createBrowserRouter([
   {
