@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export function useDebouncedQuery<T>(
   fetcher: ((query: string) => Promise<T>) | null,
@@ -8,17 +8,20 @@ export function useDebouncedQuery<T>(
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const fetcherRef = useRef(fetcher)
+  fetcherRef.current = fetcher
 
   useEffect(() => {
-    if (!fetcher || query.length < 2) {
+    if (!fetcherRef.current || query.length < 2) {
       setData(null)
       setLoading(false)
       return
     }
     setLoading(true)
     const timer = setTimeout(async () => {
+      if (!fetcherRef.current) return
       try {
-        const result = await fetcher(query)
+        const result = await fetcherRef.current(query)
         setData(result)
         setError(null)
       } catch (e) {
@@ -29,7 +32,7 @@ export function useDebouncedQuery<T>(
       }
     }, delay)
     return () => clearTimeout(timer)
-  }, [query, delay]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [query, delay])
 
   return { data, loading, error }
 }
