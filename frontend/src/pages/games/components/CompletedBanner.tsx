@@ -9,10 +9,10 @@ export function CompletedBanner({ game }: Props) {
 
   const winner = game.winnerId === game.player1.id ? game.player1 : game.player2
   const finalP1Sets = game.sets.filter(
-    (s) => s.completedAt !== undefined && s.player1Score > s.player2Score,
+    (s) => s.completedAt != null && s.player1Score > s.player2Score,
   ).length
   const finalP2Sets = game.sets.filter(
-    (s) => s.completedAt !== undefined && s.player2Score > s.player1Score,
+    (s) => s.completedAt != null && s.player2Score > s.player1Score,
   ).length
 
   return (

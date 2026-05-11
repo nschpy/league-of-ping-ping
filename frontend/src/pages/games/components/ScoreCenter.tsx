@@ -12,10 +12,10 @@ export function ScoreCenter({ game }: Props) {
   const setIndex = sets.length
 
   const p1SetWins = sets.filter(
-    (s) => s.completedAt !== undefined && s.player1Score > s.player2Score,
+    (s) => s.completedAt != null && s.player1Score > s.player2Score,
   ).length
   const p2SetWins = sets.filter(
-    (s) => s.completedAt !== undefined && s.player2Score > s.player1Score,
+    (s) => s.completedAt != null && s.player2Score > s.player1Score,
   ).length
 
   const needed = setsToWin(format)

@@ -7,7 +7,7 @@ interface Props {
   game: Game
   isReferee: boolean
   onAddPoint: (scorer: 'p1' | 'p2') => Promise<void>
-  onUndo: (scorer: 'p1' | 'p2') => Promise<void>
+  onUndo: () => Promise<void>
 }
 
 export function Scoreboard({ game, isReferee, onAddPoint, onUndo }: Props) {
@@ -29,14 +29,14 @@ export function Scoreboard({ game, isReferee, onAddPoint, onUndo }: Props) {
           game={game}
           side="p1"
           onAction={() => onAddPoint('p1')}
-          onUndo={() => onUndo('p1')}
+          onUndo={onUndo}
         />
         <ScoreCenter game={game} />
         <RefereePanel
           game={game}
           side="p2"
           onAction={() => onAddPoint('p2')}
-          onUndo={() => onUndo('p2')}
+          onUndo={onUndo}
         />
       </div>
 

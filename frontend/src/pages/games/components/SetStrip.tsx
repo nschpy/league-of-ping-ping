@@ -14,7 +14,7 @@ export function SetStrip({ sets, format }: Props) {
   return (
     <div className="flex gap-2">
       {slots.map((set, i) => {
-        const isActive = set !== null && set.completedAt === undefined && i === sets.length - 1
+        const isActive = set !== null && !set.completedAt && i === sets.length - 1
         const isEmpty = set === null
         return (
           <div

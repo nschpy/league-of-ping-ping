@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
@@ -52,12 +52,12 @@ export function GameViewPage() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isReferee, id])
+  }, [isReferee, addPoint])
 
-  async function addPoint(scorer: 'p1' | 'p2') {
+  const addPoint = useCallback(async (scorer: 'p1' | 'p2') => {
     const updated = await api.post<Game>(`/games/${id}/points`, { scorer })
     setGame(updated)
-  }
+  }, [id])
 
   async function undoLast() {
     const updated = await api.del<Game>(`/games/${id}/points/last`)
@@ -104,7 +104,7 @@ export function GameViewPage() {
         game={game}
         isReferee={isReferee}
         onAddPoint={addPoint}
-        onUndo={(side) => (side === 'p1' ? undoLast() : undoLast())}
+        onUndo={() => undoLast()}
       />
       {isReferee && (
         <RefereeControlBar game={game} onFinalize={finalizeSet} onCancel={cancelGame} />
