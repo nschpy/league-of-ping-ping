@@ -4,6 +4,11 @@ import { AuthLayout } from '@/pages/auth/AuthLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
+import { AppShell } from '@/components/layout/AppShell'
+
+// Temporary placeholders — will be replaced in Tasks F and G
+const CreateGamePage = () => <div className="p-8 text-foreground">Create Game — coming soon</div>
+const GameViewPage = () => <div className="p-8 text-foreground">Game View — coming soon</div>
 
 export const router = createBrowserRouter([
   {
@@ -17,8 +22,15 @@ export const router = createBrowserRouter([
     path: '/',
     element: <ProtectedRoute />,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: 'dashboard', element: <DashboardPage /> },
+      {
+        element: <AppShell />,
+        children: [
+          { index: true, element: <Navigate to="/dashboard" replace /> },
+          { path: 'dashboard', element: <DashboardPage /> },
+          { path: 'games/new', element: <CreateGamePage /> },
+          { path: 'games/:id', element: <GameViewPage /> },
+        ],
+      },
     ],
   },
   {
