@@ -4,6 +4,9 @@ import { AuthLayout } from '@/pages/auth/AuthLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
+import { AppShell } from '@/components/layout/AppShell'
+import { CreateGamePage } from '@/pages/games/CreateGamePage'
+import { GameViewPage } from '@/pages/games/GameViewPage'
 
 export const router = createBrowserRouter([
   {
@@ -17,8 +20,15 @@ export const router = createBrowserRouter([
     path: '/',
     element: <ProtectedRoute />,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: 'dashboard', element: <DashboardPage /> },
+      {
+        element: <AppShell />,
+        children: [
+          { index: true, element: <Navigate to="/dashboard" replace /> },
+          { path: 'dashboard', element: <DashboardPage /> },
+          { path: 'games/new', element: <CreateGamePage /> },
+          { path: 'games/:id', element: <GameViewPage /> },
+        ],
+      },
     ],
   },
   {

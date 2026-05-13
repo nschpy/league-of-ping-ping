@@ -17,13 +17,20 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: 'Request failed' }))
-    throw Object.assign(new Error(body.message ?? 'Request failed'), { statusCode: res.status })
+    const err = Object.assign(new Error(body.message ?? 'Request failed'), { statusCode: res.status })
+    if (res.status === 401) {
+      useAuthStore.getState().logout()
+    }
+    throw err
   }
   return res.json() as Promise<T>
 }
 
 export const api = {
+  get: <T>(path: string) => request<T>(path, { method: 'GET' }),
   post: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
-  get: <T>(path: string) => request<T>(path, { method: 'GET' }),
+  patch: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
+  del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }
