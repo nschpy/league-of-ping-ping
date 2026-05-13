@@ -4,7 +4,6 @@ import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
 import { cn } from '@/lib/utils'
 import type { Game } from '@/lib/types'
-import { CompletedBanner } from './components/CompletedBanner'
 import { GameHeader } from './components/GameHeader'
 import { Scoreboard } from './components/Scoreboard'
 import { RefereeControlBar } from './components/RefereeControlBar'
@@ -120,7 +119,6 @@ export function GameViewPage() {
 
   return (
     <div className={cn("flex flex-col px-4 sm:px-6", isReferee && "pb-44 md:pb-0")}>
-      {game.status === 'completed' && <CompletedBanner game={game} />}
       <GameHeader game={game} isReferee={isReferee} />
       {mutationError && (
         <p className="py-2 text-sm text-destructive">{mutationError}</p>

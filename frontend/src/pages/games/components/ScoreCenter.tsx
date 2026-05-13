@@ -1,15 +1,11 @@
 import { cn } from '@/lib/utils'
 import { SetStrip } from './SetStrip'
 import { setsToWin } from '@/lib/game-scoring'
+import { initials } from '@/lib/player'
 import type { Game } from '@/lib/types'
 
 interface Props {
   game: Game
-}
-
-function initials(nickname: string) {
-  const cleaned = nickname.replace(/[^a-zA-Zа-яА-Я0-9]/g, '')
-  return cleaned.slice(0, 2).toUpperCase() || '??'
 }
 
 export function ScoreCenter({ game }: Props) {

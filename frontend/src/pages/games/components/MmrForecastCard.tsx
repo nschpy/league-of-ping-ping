@@ -1,33 +1,24 @@
 import { cn } from '@/lib/utils'
 import { mmrDelta } from '@/lib/game-scoring'
+import { initials, playerTileClasses } from '@/lib/player'
 import type { Game } from '@/lib/types'
 
 interface Props {
   game: Game
 }
 
-function initials(nickname: string) {
-  const cleaned = nickname.replace(/[^a-zA-Zа-яА-Я0-9]/g, '')
-  return cleaned.slice(0, 2).toUpperCase() || '??'
-}
-
 export function MmrForecastCard({ game }: Props) {
   const { player1, player2, player1MmrBefore, player2MmrBefore, format } = game
-  const isCompleted = game.status === 'completed'
 
-  const p1WinDelta = isCompleted
-    ? game.player1MmrChange
-    : mmrDelta(player1MmrBefore, player2MmrBefore, true, format)
-  const p1LoseDelta = isCompleted ? null : mmrDelta(player1MmrBefore, player2MmrBefore, false, format)
-  const p2WinDelta = isCompleted
-    ? game.player2MmrChange
-    : mmrDelta(player2MmrBefore, player1MmrBefore, true, format)
-  const p2LoseDelta = isCompleted ? null : mmrDelta(player2MmrBefore, player1MmrBefore, false, format)
+  const p1WinDelta = mmrDelta(player1MmrBefore, player2MmrBefore, true, format)
+  const p1LoseDelta = mmrDelta(player1MmrBefore, player2MmrBefore, false, format)
+  const p2WinDelta = mmrDelta(player2MmrBefore, player1MmrBefore, true, format)
+  const p2LoseDelta = mmrDelta(player2MmrBefore, player1MmrBefore, false, format)
 
   return (
     <div className="rounded-xl border bg-card p-5">
       <p className="mb-4 text-xs font-bold uppercase tracking-widest text-foreground">
-        {isCompleted ? 'ИЗМЕНЕНИЕ MMR' : 'ПРОГНОЗ MMR'}
+        ПРОГНОЗ MMR
       </p>
       <div className="flex flex-col gap-4">
         {[
@@ -40,7 +31,7 @@ export function MmrForecastCard({ game }: Props) {
               <div
                 className={cn(
                   'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md font-display text-sm font-black',
-                  isP1 ? 'bg-primary text-primary-foreground' : 'bg-blue-500 text-white',
+                  playerTileClasses(isP1),
                 )}
               >
                 {initials(player.nickname)}
@@ -51,73 +42,38 @@ export function MmrForecastCard({ game }: Props) {
               <span className="flex-shrink-0 font-mono text-sm font-bold text-muted-foreground">{mmrBefore}</span>
             </div>
             {/* WIN / LOSS badges */}
-            {isCompleted ? (
-              (() => {
-                const won = winDelta !== null && winDelta >= 0
-                return (
-                  <div
-                    className={cn(
-                      'rounded-md border px-3 py-2',
-                      won
-                        ? 'border-green-500/50 bg-green-500/10'
-                        : 'border-red-500/50 bg-red-500/10',
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p
-                        className={cn(
-                          'text-[10px] font-bold uppercase tracking-widest',
-                          won ? 'text-green-400' : 'text-red-400',
-                        )}
-                      >
-                        {won ? 'WIN' : 'LOSS'}
-                      </p>
-                      <p className={cn('font-mono text-base font-black', won ? 'text-green-400' : 'text-red-400')}>
-                        {winDelta !== null ? (winDelta >= 0 ? '+' : '') + winDelta : '—'}
-                      </p>
-                    </div>
-                    {winDelta !== null && (
-                      <p className="mt-1 font-mono text-2xl font-black text-foreground">{mmrBefore + winDelta}</p>
-                    )}
-                  </div>
-                )
-              })()
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {/* WIN badge */}
-                <div className="rounded-md border border-green-500/50 bg-green-500/10 px-3 py-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-green-400">WIN</p>
-                    <p className="font-mono text-base font-black text-green-400">
-                      {winDelta !== null ? (winDelta >= 0 ? '+' : '') + winDelta : '—'}
-                    </p>
-                  </div>
-                  {winDelta !== null && (
-                    <p className="mt-1 font-mono text-2xl font-black text-foreground">{mmrBefore + winDelta}</p>
-                  )}
+            <div className="grid grid-cols-2 gap-2">
+              {/* WIN badge */}
+              <div className="rounded-md border border-green-500/50 bg-green-500/10 px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-green-400">WIN</p>
+                  <p className="font-mono text-base font-black text-green-400">
+                    {winDelta !== null ? (winDelta >= 0 ? '+' : '') + winDelta : '—'}
+                  </p>
                 </div>
-                {/* LOSS badge */}
-                <div className="rounded-md border border-red-500/50 bg-red-500/10 px-3 py-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">LOSS</p>
-                    <p className="font-mono text-base font-black text-red-400">
-                      {loseDelta !== null ? (loseDelta >= 0 ? '+' : '') + loseDelta : '—'}
-                    </p>
-                  </div>
-                  {loseDelta !== null && (
-                    <p className="mt-1 font-mono text-2xl font-black text-foreground">{mmrBefore + loseDelta}</p>
-                  )}
-                </div>
+                {winDelta !== null && (
+                  <p className="mt-1 font-mono text-2xl font-black text-foreground">{mmrBefore + winDelta}</p>
+                )}
               </div>
-            )}
+              {/* LOSS badge */}
+              <div className="rounded-md border border-red-500/50 bg-red-500/10 px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">LOSS</p>
+                  <p className="font-mono text-base font-black text-red-400">
+                    {loseDelta !== null ? (loseDelta >= 0 ? '+' : '') + loseDelta : '—'}
+                  </p>
+                </div>
+                {loseDelta !== null && (
+                  <p className="mt-1 font-mono text-2xl font-black text-foreground">{mmrBefore + loseDelta}</p>
+                )}
+              </div>
+            </div>
           </div>
         ))}
       </div>
-      {!isCompleted && (
-        <p className="mt-4 text-[11px] text-muted-foreground">
-          Изменение MMR симметрично · базовая ставка 25, скорректирована под разницу рейтингов.
-        </p>
-      )}
+      <p className="mt-4 text-[11px] text-muted-foreground">
+        Изменение MMR симметрично · базовая ставка 25, скорректирована под разницу рейтингов.
+      </p>
     </div>
   )
 }
