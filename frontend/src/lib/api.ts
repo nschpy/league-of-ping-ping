@@ -5,7 +5,7 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = useAuthStore.getState().token
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...(options?.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options?.headers,
   }

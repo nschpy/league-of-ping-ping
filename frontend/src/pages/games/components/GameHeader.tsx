@@ -19,7 +19,7 @@ export function GameHeader({ game, isReferee }: Props) {
       : null
 
   return (
-    <div className="flex flex-col gap-2 border-b border-border/70 bg-linear-to-b from-background via-background to-card/40 py-4">
+    <div className="flex flex-col gap-2 py-8">
       <div className="flex flex-wrap items-center gap-2.5">
         <GameStatusBadge status={game.status} />
         <Badge
