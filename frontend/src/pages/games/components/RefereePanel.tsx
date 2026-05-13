@@ -17,6 +17,9 @@ export function RefereePanel({ game, side, onAction, onUndo }: Props) {
   const sideLabel = isP1 ? 'PLAYER A' : 'PLAYER B'
   const hotkey = isP1 ? 'A' : 'L'
   const disabled = loading || game.status !== 'in_progress'
+  const sideShort = isP1 ? 'A' : 'B'
+  const currentSet = game.sets[game.sets.length - 1]
+  const hasPointsToUndo = (currentSet?.points.length ?? 0) > 0
 
   async function handleAction() {
     setLoading(true)
@@ -49,7 +52,7 @@ export function RefereePanel({ game, side, onAction, onUndo }: Props) {
         disabled={disabled}
         onClick={handleAction}
         className={cn(
-          'group relative flex h-32 w-full flex-col items-center justify-center rounded-md px-4 text-primary-foreground transition-colors',
+          'group relative flex h-40 w-full flex-col items-center justify-center rounded-md px-4 text-primary-foreground transition-colors',
           'disabled:cursor-not-allowed disabled:opacity-50',
           isP1
             ? 'bg-primary hover:bg-primary/90'
@@ -72,11 +75,11 @@ export function RefereePanel({ game, side, onAction, onUndo }: Props) {
       <Button
         variant="outline"
         size="sm"
-        disabled={disabled}
+        disabled={disabled || !hasPointsToUndo}
         onClick={handleUndo}
         className="mt-auto w-full text-xs font-semibold uppercase tracking-widest"
       >
-        ↶ Undo {hotkey}
+        ↶ UNDO {sideShort}
       </Button>
     </div>
   )
