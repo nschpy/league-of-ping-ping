@@ -27,36 +27,46 @@ interface FormatCardProps {
 
 export function FormatCard({ format, selected, onSelect }: FormatCardProps) {
   const bars = FORMAT_BARS[format]
+  const isPopular = format === 'bo3'
 
   return (
     <button
+      type="button"
       onClick={onSelect}
       className={cn(
-        'relative flex flex-col gap-3 rounded-lg border p-4 text-left transition-colors',
+        'group relative flex min-h-[140px] flex-col justify-between gap-4 rounded-lg border p-5 text-left transition-colors',
         selected
-          ? 'border-primary bg-primary/10'
-          : 'border-border bg-card hover:border-primary/50',
+          ? 'border-primary bg-primary/[0.07] ring-1 ring-primary/60'
+          : 'border-border bg-card hover:border-primary/40',
       )}
     >
-      {format === 'bo3' && (
-        <span className="absolute right-3 top-3 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
+      {isPopular && (
+        <span className="absolute -top-2.5 right-4 rounded-sm bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-accent-foreground shadow-sm">
           Popular
         </span>
       )}
 
-      <div className="font-display text-3xl font-bold text-foreground">
-        {FORMAT_LABELS[format]}
+      <div className="flex flex-col gap-1.5">
+        <div
+          className={cn(
+            'font-display text-4xl font-bold leading-none',
+            selected ? 'text-primary' : 'text-foreground',
+          )}
+        >
+          {FORMAT_LABELS[format]}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {FORMAT_SUBTITLES[format]}
+        </p>
       </div>
 
-      <p className="text-xs text-muted-foreground">{FORMAT_SUBTITLES[format]}</p>
-
-      <div className="flex gap-1">
+      <div className="flex gap-1.5">
         {Array.from({ length: bars }).map((_, i) => (
           <div
             key={i}
             className={cn(
               'h-1 flex-1 rounded-full',
-              selected ? 'bg-primary' : 'bg-muted-foreground/30',
+              selected ? 'bg-primary' : 'bg-muted-foreground/20',
             )}
           />
         ))}
