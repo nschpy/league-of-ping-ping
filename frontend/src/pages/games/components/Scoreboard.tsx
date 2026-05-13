@@ -16,11 +16,7 @@ export function Scoreboard({ game, isReferee, onAddPoint, onUndo }: Props) {
   const canUndo = game.status === 'in_progress' && (currentSet?.points.length ?? 0) > 0
 
   if (!isReferee) {
-    return (
-      <div className="px-6">
-        <ScoreCenter game={game} />
-      </div>
-    )
+    return <ScoreCenter game={game} />
   }
 
   return (
