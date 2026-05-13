@@ -58,7 +58,7 @@ export function MmrForecastCard({ game }: Props) {
                   {winDelta !== null ? (winDelta >= 0 ? '+' : '') + winDelta : '—'}
                 </p>
                 {winDelta !== null && (
-                  <p className="font-mono text-xs text-muted-foreground">{mmrBefore + (winDelta ?? 0)}</p>
+                  <p className="font-mono text-xs text-muted-foreground">{mmrBefore + winDelta}</p>
                 )}
               </div>
             ) : (
