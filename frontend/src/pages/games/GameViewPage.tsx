@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
+import { cn } from '@/lib/utils'
 import type { Game } from '@/lib/types'
 import { CompletedBanner } from './components/CompletedBanner'
 import { GameHeader } from './components/GameHeader'
@@ -118,11 +119,11 @@ export function GameViewPage() {
   const setIndex = game.sets.length
 
   return (
-    <div className="flex flex-col px-4 sm:px-6 pb-36 md:pb-0">
+    <div className={cn("flex flex-col px-4 sm:px-6", isReferee && "pb-36 md:pb-0")}>
       {game.status === 'completed' && <CompletedBanner game={game} />}
       <GameHeader game={game} isReferee={isReferee} />
       {mutationError && (
-        <p className="px-5 py-2 text-sm text-destructive">{mutationError}</p>
+        <p className="py-2 text-sm text-destructive">{mutationError}</p>
       )}
       <Scoreboard
         game={game}
