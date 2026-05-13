@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Clock, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
-import { useAuthStore } from '@/stores/auth'
 import type { Game, GameFormat, PlayerSummary } from '@/lib/types'
 import { PlayersSection } from './components/PlayersSection'
 import { FormatSection } from './components/FormatSection'
@@ -11,7 +11,6 @@ import { PlayerPickerDialog } from './components/PlayerPickerDialog'
 
 export function CreateGamePage() {
   const navigate = useNavigate()
-  const currentUser = useAuthStore((s) => s.user)
 
   const [player1, setPlayer1] = useState<PlayerSummary | null>(null)
   const [player2, setPlayer2] = useState<PlayerSummary | null>(null)
@@ -24,9 +23,7 @@ export function CreateGamePage() {
   const canSubmit =
     bothSelected &&
     format !== null &&
-    player1.id !== player2.id &&
-    currentUser?.id !== player1.id &&
-    currentUser?.id !== player2.id
+    player1.id !== player2.id
 
   async function handleSubmit() {
     if (!player1 || !player2 || !format) return
@@ -50,20 +47,24 @@ export function CreateGamePage() {
   const excludeIds2 = player1 ? [player1.id] : []
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-8 p-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-8 p-6">
       {/* Header */}
-      <div className="flex flex-col gap-2">
-        <p className="text-xs text-muted-foreground">Матчи / Новый матч</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="font-display text-4xl font-bold uppercase text-foreground">
-            Создать матч
-          </h1>
-          <span className="rounded-full bg-accent/20 px-3 py-1 text-xs font-semibold text-accent">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Матчи <span className="text-primary">/ Новый матч</span>
+          </p>
+          <span className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-accent">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
             Ты — рефери
           </span>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Выбери двух игроков и формат матча для начала игры.
+        <h1 className="font-display text-5xl font-bold uppercase tracking-wide text-foreground">
+          Создать матч
+        </h1>
+        <p className="max-w-xl text-sm text-muted-foreground">
+          Рефери выбирает участников и формат. После старта результаты сетов
+          фиксируются здесь же.
         </p>
       </div>
 
@@ -81,23 +82,30 @@ export function CreateGamePage() {
       )}
 
       {/* Actions */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3">
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="w-full sm:w-auto"
-          >
-            Отмена
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!canSubmit || loading}
-            className="w-full sm:w-auto"
-          >
-            {loading ? 'Создание...' : 'Старт матча'}
-          </Button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Clock className="h-3.5 w-3.5" />
+            После старта матч получит статус «В процессе»
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="w-full uppercase tracking-widest sm:w-auto"
+            >
+              Отмена
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit || loading}
+              className="w-full uppercase tracking-widest sm:w-auto"
+            >
+              <Play className="fill-current" />
+              {loading ? 'Создание...' : 'Старт матча'}
+            </Button>
+          </div>
         </div>
       </div>
 

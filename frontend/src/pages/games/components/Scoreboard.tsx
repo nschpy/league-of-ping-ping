@@ -23,8 +23,8 @@ export function Scoreboard({ game, isReferee, onAddPoint, onUndo }: Props) {
 
   return (
     <>
-      {/* Desktop: 3-column grid */}
-      <div className="hidden md:grid md:grid-cols-[220px_1fr_220px]">
+      {/* Desktop: 3-column grid with bordered side panels */}
+      <div className="hidden md:grid md:grid-cols-[260px_1fr_260px] md:bg-card/40">
         <RefereePanel
           game={game}
           side="p1"

@@ -16,29 +16,34 @@ export function PlayersSection({
 }: PlayersSectionProps) {
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-        1. Игроки
+      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        1. Участники
       </p>
-      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-stretch">
+      <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-2">
         <PlayerSlot
           player={player1}
           side="A"
           label="PLAYER A"
+          role="подача"
           onPick={onPickPlayer1}
         />
-
-        <div className="flex items-center justify-center sm:absolute sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-sm font-bold text-muted-foreground ring-2 ring-background">
-            VS
-          </span>
-        </div>
 
         <PlayerSlot
           player={player2}
           side="B"
           label="PLAYER B"
+          role="приём"
           onPick={onPickPlayer2}
         />
+
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 sm:block"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-[11px] font-bold tracking-widest text-muted-foreground shadow-md">
+            VS
+          </span>
+        </div>
       </div>
     </div>
   )

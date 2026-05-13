@@ -8,6 +8,7 @@ interface Props {
 }
 
 const FORMAT_LABELS: Record<string, string> = { bo1: 'BO1', bo3: 'BO3', bo5: 'BO5' }
+const HEADER_BADGE_BASE = 'rounded-full px-3.5 py-1 text-sm font-extrabold tracking-wide'
 
 export function GameHeader({ game, isReferee }: Props) {
   const winner =
@@ -18,18 +19,28 @@ export function GameHeader({ game, isReferee }: Props) {
       : null
 
   return (
-    <div className="flex flex-col gap-3 border-b px-6 py-5">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-2 border-b border-border/70 bg-linear-to-b from-background via-background to-card/40 px-6 py-4">
+      <div className="flex flex-wrap items-center gap-2.5">
         <GameStatusBadge status={game.status} />
-        <Badge variant="outline">#{game.id.slice(-5).toUpperCase()}</Badge>
-        <Badge variant="outline">{FORMAT_LABELS[game.format]}</Badge>
+        <Badge
+          className={`${HEADER_BADGE_BASE} border-border bg-card text-muted-foreground hover:bg-card`}
+        >
+          MATCH #{game.id.slice(-5).toUpperCase()}
+        </Badge>
+        <Badge
+          className={`${HEADER_BADGE_BASE} border! border-accent! bg-transparent! text-accent hover:bg-accent/10`}
+        >
+          {FORMAT_LABELS[game.format]}
+        </Badge>
         {isReferee && (
-          <Badge className="border-yellow-500 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/10">
+          <Badge
+            className={`${HEADER_BADGE_BASE} border-0! bg-primary text-primary-foreground hover:bg-primary`}
+          >
             РЕЖИМ РЕФЕРИ
           </Badge>
         )}
       </div>
-      <h1 className="font-display text-2xl font-bold text-foreground">
+      <h1 className="font-display text-5xl leading-none font-black uppercase tracking-wide text-foreground sm:text-6xl">
         {game.status === 'completed' && winner ? (
           <>
             <span className="text-primary">{winner}</span>
@@ -37,9 +48,9 @@ export function GameHeader({ game, isReferee }: Props) {
           </>
         ) : (
           <>
-            {game.player1.nickname}{' '}
-            <span className="text-muted-foreground">vs</span>{' '}
-            {game.player2.nickname}
+            <span>{game.player1.nickname}</span>
+            <span className="mx-3 text-muted-foreground/70">VS</span>
+            <span>{game.player2.nickname}</span>
           </>
         )}
       </h1>
