@@ -33,8 +33,8 @@ export function SetStrip({ sets, format }: Props) {
           <div
             key={i}
             className={cn(
-              'flex min-w-[140px] flex-1 items-center justify-between gap-3 rounded-md border px-3 py-2',
-              isActive && 'border-primary bg-primary/5',
+              'flex min-w-[110px] sm:min-w-[140px] flex-1 items-center justify-between gap-3 rounded-md border px-3 py-2',
+              isActive && 'border-primary bg-primary/10',
               !isActive && !isEmpty && 'border-border bg-card',
               isEmpty && 'border-dashed border-border bg-transparent opacity-40',
             )}
@@ -43,7 +43,7 @@ export function SetStrip({ sets, format }: Props) {
               <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Сет {i + 1}
                 {isActive && (
-                  <span className="rounded-sm bg-primary px-1 py-px text-[9px] font-bold text-primary-foreground">
+                  <span className="rounded-sm bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
                     LIVE
                   </span>
                 )}
