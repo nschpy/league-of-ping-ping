@@ -19,7 +19,7 @@ export function GameHeader({ game, isReferee }: Props) {
       : null
 
   return (
-    <div className="flex flex-col gap-2 border-b border-border/70 bg-linear-to-b from-background via-background to-card/40 px-6 py-4">
+    <div className="flex flex-col gap-2 border-b border-border/70 bg-linear-to-b from-background via-background to-card/40 py-4">
       <div className="flex flex-wrap items-center gap-2.5">
         <GameStatusBadge status={game.status} />
         <Badge
@@ -40,7 +40,7 @@ export function GameHeader({ game, isReferee }: Props) {
           </Badge>
         )}
       </div>
-      <h1 className="font-display text-5xl leading-none font-black uppercase tracking-wide text-foreground sm:text-6xl">
+      <h1 className="font-display text-3xl leading-none font-black uppercase tracking-wide text-foreground sm:text-5xl md:text-6xl min-w-0 break-words">
         {game.status === 'completed' && winner ? (
           <>
             <span className="text-primary">{winner}</span>
