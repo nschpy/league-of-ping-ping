@@ -119,7 +119,7 @@ export function GameViewPage() {
   const setIndex = game.sets.length
 
   return (
-    <div className={cn("flex flex-col px-4 sm:px-6", isReferee && "pb-36 md:pb-0")}>
+    <div className={cn("flex flex-col px-4 sm:px-6", isReferee && "pb-44 md:pb-0")}>
       {game.status === 'completed' && <CompletedBanner game={game} />}
       <GameHeader game={game} isReferee={isReferee} />
       {mutationError && (
