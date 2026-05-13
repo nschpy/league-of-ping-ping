@@ -12,7 +12,7 @@ async function userRoutesPlugin(app: FastifyInstance): Promise<void> {
     schema: {
       querystring: Type.Object({
         q: Type.String({ minLength: 2 }),
-        limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 25, default: 10 })),
+        limit: Type.Optional(Type.String({ pattern: '^(?:[1-9]|1\\d|2[0-5])$' })),
       }),
       response: {
         200: UserSearchResponse,
@@ -23,12 +23,13 @@ async function userRoutesPlugin(app: FastifyInstance): Promise<void> {
     },
     onRequest: app.authenticate,
     handler: async (request, reply) => {
-      const { q, limit = 10 } = request.query
+      const { q, limit } = request.query
+      const safeLimit = limit ? Number.parseInt(limit, 10) : 10
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       const results = await UserModel.find(
-        { nickname: { $regex: escaped, $options: 'i' }, _id: { $ne: request.user.sub } },
+        { nickname: { $regex: escaped, $options: 'i' } },
         'nickname mmr',
-      ).limit(limit).lean()
+      ).limit(safeLimit).lean()
       return reply.send(results.map((u) => ({ id: u._id.toString(), nickname: u.nickname, mmr: u.mmr })))
     },
   })

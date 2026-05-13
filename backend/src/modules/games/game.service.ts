@@ -18,10 +18,6 @@ export async function createGame(dto: {
     throw badRequest('Player 1 and Player 2 must be different')
   }
 
-  if (refereeId === player1Id || refereeId === player2Id) {
-    throw badRequest('Referee cannot be a player')
-  }
-
   const [player1, player2] = await Promise.all([
     UserModel.findById(player1Id),
     UserModel.findById(player2Id),
