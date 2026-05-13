@@ -118,7 +118,7 @@ export function GameViewPage() {
   const setIndex = game.sets.length
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col px-4 sm:px-6 pb-36 md:pb-0">
       {game.status === 'completed' && <CompletedBanner game={game} />}
       <GameHeader game={game} isReferee={isReferee} />
       {mutationError && (
@@ -133,7 +133,7 @@ export function GameViewPage() {
       {isReferee && (
         <RefereeControlBar game={game} onFinalize={finalizeSet} onCancel={cancelGame} />
       )}
-      <div className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 py-5 lg:grid-cols-2">
         <PointTimelineCard set={currentSet} setIndex={setIndex} />
         <MmrForecastCard game={game} />
       </div>
