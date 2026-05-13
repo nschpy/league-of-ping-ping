@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { initials } from '@/lib/player'
 import type { PlayerSummary } from '@/lib/types'
 
 interface PlayerSlotProps {
@@ -7,10 +8,6 @@ interface PlayerSlotProps {
   label: string
   role: string
   onPick: () => void
-}
-
-function initials(nickname: string): string {
-  return nickname.slice(0, 2).toUpperCase()
 }
 
 interface StatProps {

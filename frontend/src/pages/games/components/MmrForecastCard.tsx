@@ -48,24 +48,20 @@ export function MmrForecastCard({ game }: Props) {
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-green-400">WIN</p>
                   <p className="font-mono text-base font-black text-green-400">
-                    {winDelta !== null ? (winDelta >= 0 ? '+' : '') + winDelta : '—'}
+                    {(winDelta >= 0 ? '+' : '') + winDelta}
                   </p>
                 </div>
-                {winDelta !== null && (
-                  <p className="mt-1 font-mono text-2xl font-black text-foreground">{mmrBefore + winDelta}</p>
-                )}
+                <p className="mt-1 font-mono text-2xl font-black text-foreground">{mmrBefore + winDelta}</p>
               </div>
               {/* LOSS badge */}
               <div className="rounded-md border border-red-500/50 bg-red-500/10 px-3 py-2">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">LOSS</p>
                   <p className="font-mono text-base font-black text-red-400">
-                    {loseDelta !== null ? (loseDelta >= 0 ? '+' : '') + loseDelta : '—'}
+                    {(loseDelta >= 0 ? '+' : '') + loseDelta}
                   </p>
                 </div>
-                {loseDelta !== null && (
-                  <p className="mt-1 font-mono text-2xl font-black text-foreground">{mmrBefore + loseDelta}</p>
-                )}
+                <p className="mt-1 font-mono text-2xl font-black text-foreground">{mmrBefore + loseDelta}</p>
               </div>
             </div>
           </div>
