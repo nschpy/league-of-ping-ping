@@ -22,7 +22,8 @@ export function SetStrip({ sets, format }: Props) {
   const slots = Array.from({ length: total }, (_, i) => sets[i] ?? null)
 
   return (
-    <div className="flex w-full max-w-2xl flex-wrap justify-center gap-3">
+    <div className="w-full overflow-x-auto">
+      <div className="flex min-w-max gap-3">
       {slots.map((set, i) => {
         const isActive = set !== null && !set.completedAt && i === sets.length - 1
         const isEmpty = set === null
@@ -33,7 +34,7 @@ export function SetStrip({ sets, format }: Props) {
           <div
             key={i}
             className={cn(
-              'flex min-w-[110px] sm:min-w-[140px] flex-1 items-center justify-between gap-3 rounded-md border px-3 py-2',
+              'flex min-w-[110px] sm:min-w-[140px] items-center justify-between gap-3 rounded-md border px-3 py-2',
               isActive && 'border-primary bg-primary/10',
               !isActive && !isEmpty && 'border-border bg-card',
               isEmpty && 'border-dashed border-border bg-transparent opacity-40',
@@ -71,6 +72,7 @@ export function SetStrip({ sets, format }: Props) {
           </div>
         )
       })}
+      </div>
     </div>
   )
 }

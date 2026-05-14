@@ -22,11 +22,11 @@ export function RefereeControlBar({ game, onFinalize, onCancel }: Props) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3 border-t border-border bg-card/40 py-3">
+      <div className="flex flex-col gap-3 border-t border-border bg-card/40 py-3 px-6 sm:flex-row sm:items-center">
         <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
           Контроль рефери
         </span>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
           <Button
             variant="outline"
             size="sm"
@@ -36,8 +36,6 @@ export function RefereeControlBar({ game, onFinalize, onCancel }: Props) {
           >
             → Завершить сет вручную
           </Button>
-        </div>
-        <div className="ml-auto flex items-center gap-3">
           <Button
             variant="destructive"
             size="sm"

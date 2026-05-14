@@ -43,28 +43,30 @@ export function PointTimelineCard({ set, setIndex }: Props) {
 
       {points.length > 0 && (
         <>
-          <div className="mb-3 flex flex-col gap-1 overflow-x-auto">
-            <div className="flex gap-1">
-              {points.map((pt, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'h-7 w-7 shrink-0 rounded-sm',
-                    pt.scorer === 'p1' ? 'bg-primary' : 'bg-white/[0.07]',
-                  )}
-                />
-              ))}
-            </div>
-            <div className="flex gap-1">
-              {points.map((pt, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'h-7 w-7 shrink-0 rounded-sm',
-                    pt.scorer === 'p2' ? 'bg-blue-500' : 'bg-white/[0.07]',
-                  )}
-                />
-              ))}
+          <div className="mb-3 overflow-x-auto">
+            <div className="flex min-w-max flex-col gap-1">
+              <div className="flex gap-1">
+                {points.map((pt, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      'h-7 w-7 shrink-0 rounded-sm',
+                      pt.scorer === 'p1' ? 'bg-primary' : 'bg-white/[0.07]',
+                    )}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-1">
+                {points.map((pt, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      'h-7 w-7 shrink-0 rounded-sm',
+                      pt.scorer === 'p2' ? 'bg-blue-500' : 'bg-white/[0.07]',
+                    )}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
