@@ -9,6 +9,7 @@ import { Scoreboard } from './components/Scoreboard'
 import { RefereeControlBar } from './components/RefereeControlBar'
 import { PointTimelineCard } from './components/PointTimelineCard'
 import { MmrForecastCard } from './components/MmrForecastCard'
+import { GameCompletedView } from './components/completed/GameCompletedView'
 
 export function GameViewPage() {
   const { id } = useParams<{ id: string }>()
@@ -112,6 +113,10 @@ export function GameViewPage() {
         <p className="text-muted-foreground">Загрузка...</p>
       </div>
     )
+  }
+
+  if (game.status === 'completed') {
+    return <GameCompletedView game={game} />
   }
 
   const currentSet = game.sets[game.sets.length - 1]
