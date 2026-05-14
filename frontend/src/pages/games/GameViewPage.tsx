@@ -2,13 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
+import { cn } from '@/lib/utils'
 import type { Game } from '@/lib/types'
-import { CompletedBanner } from './components/CompletedBanner'
 import { GameHeader } from './components/GameHeader'
 import { Scoreboard } from './components/Scoreboard'
 import { RefereeControlBar } from './components/RefereeControlBar'
 import { PointTimelineCard } from './components/PointTimelineCard'
 import { MmrForecastCard } from './components/MmrForecastCard'
+import { GameCompletedView } from './components/completed/GameCompletedView'
 
 export function GameViewPage() {
   const { id } = useParams<{ id: string }>()
@@ -114,15 +115,18 @@ export function GameViewPage() {
     )
   }
 
+  if (game.status === 'completed') {
+    return <GameCompletedView game={game} />
+  }
+
   const currentSet = game.sets[game.sets.length - 1]
   const setIndex = game.sets.length
 
   return (
-    <div className="flex flex-col">
-      {game.status === 'completed' && <CompletedBanner game={game} />}
+    <div className={cn("flex flex-col px-4 sm:px-6", isReferee && "pb-44 md:pb-0")}>
       <GameHeader game={game} isReferee={isReferee} />
       {mutationError && (
-        <p className="px-5 py-2 text-sm text-destructive">{mutationError}</p>
+        <p className="py-2 text-sm text-destructive">{mutationError}</p>
       )}
       <Scoreboard
         game={game}
@@ -133,7 +137,7 @@ export function GameViewPage() {
       {isReferee && (
         <RefereeControlBar game={game} onFinalize={finalizeSet} onCancel={cancelGame} />
       )}
-      <div className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 py-5 lg:grid-cols-2">
         <PointTimelineCard set={currentSet} setIndex={setIndex} />
         <MmrForecastCard game={game} />
       </div>

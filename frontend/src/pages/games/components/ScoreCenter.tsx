@@ -1,15 +1,11 @@
 import { cn } from '@/lib/utils'
 import { SetStrip } from './SetStrip'
 import { setsToWin } from '@/lib/game-scoring'
+import { initials } from '@/lib/player'
 import type { Game } from '@/lib/types'
 
 interface Props {
   game: Game
-}
-
-function initials(nickname: string) {
-  const cleaned = nickname.replace(/[^a-zA-Zа-яА-Я0-9]/g, '')
-  return cleaned.slice(0, 2).toUpperCase() || '??'
 }
 
 export function ScoreCenter({ game }: Props) {
@@ -34,11 +30,11 @@ export function ScoreCenter({ game }: Props) {
 
       <div className="grid w-full grid-cols-[1fr_auto_auto_auto_1fr] items-center gap-x-4 sm:gap-x-6">
         {/* Player 1 info */}
-        <div className="flex flex-col items-end gap-0.5">
+        <div className="flex min-w-0 flex-col items-end gap-0.5">
           <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary">
             РА
           </span>
-          <span className="font-display text-base font-semibold uppercase tracking-wide text-foreground">
+          <span className="min-w-0 truncate font-display text-base font-semibold uppercase tracking-wide text-foreground">
             {player1.nickname}
           </span>
           <span className="font-mono text-[10px] text-muted-foreground">
@@ -52,14 +48,11 @@ export function ScoreCenter({ game }: Props) {
         </div>
 
         {/* Score */}
-        <div className="flex items-center gap-3 sm:gap-5">
-          <span className="font-mono text-7xl font-black tabular-nums leading-none text-foreground sm:text-8xl">
+        <div className="flex items-center gap-6 sm:gap-10">
+          <span className="font-mono text-6xl font-black tabular-nums leading-none text-primary sm:text-7xl md:text-8xl">
             {currentSet?.player1Score ?? 0}
           </span>
-          <span className="font-mono text-5xl font-light text-muted-foreground sm:text-6xl">
-            :
-          </span>
-          <span className="font-mono text-7xl font-black tabular-nums leading-none text-blue-400 sm:text-8xl">
+          <span className="font-mono text-6xl font-black tabular-nums leading-none text-blue-400 sm:text-7xl md:text-8xl">
             {currentSet?.player2Score ?? 0}
           </span>
         </div>
@@ -70,11 +63,11 @@ export function ScoreCenter({ game }: Props) {
         </div>
 
         {/* Player 2 info */}
-        <div className="flex flex-col items-start gap-0.5">
+        <div className="flex min-w-0 flex-col items-start gap-0.5">
           <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-blue-400">
             РВ
           </span>
-          <span className="font-display text-base font-semibold uppercase tracking-wide text-foreground">
+          <span className="min-w-0 truncate font-display text-base font-semibold uppercase tracking-wide text-foreground">
             {player2.nickname}
           </span>
           <span className="font-mono text-[10px] text-muted-foreground">
@@ -91,7 +84,7 @@ export function ScoreCenter({ game }: Props) {
       </div>
 
       {/* Set tally */}
-      <p className="text-xs font-medium text-muted-foreground">
+      <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
         <span className="font-semibold uppercase tracking-widest">Сеты:</span>{' '}
         <span className="font-mono font-bold text-foreground">
           {p1SetWins} – {p2SetWins}

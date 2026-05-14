@@ -16,7 +16,11 @@ export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: true })
   app.setValidatorCompiler(TypeBoxValidatorCompiler)
   registerErrorHandler(app)
-  await app.register(cors, { origin: config.CORS_ORIGIN, credentials: true })
+  await app.register(cors, {
+    origin: config.CORS_ORIGIN,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  })
   await app.register(swagger, { openapi: { info: { title: 'League API', version: '1.0.0' } } })
   await app.register(swaggerUI, { routePrefix: '/docs' })
   await app.register(mongoosePlugin)
