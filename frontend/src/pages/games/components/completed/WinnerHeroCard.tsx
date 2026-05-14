@@ -52,10 +52,11 @@ function PlayerLine({ player, isP1, sets, label, align }: PlayerLineProps) {
 }
 
 export function WinnerHeroCard({ game }: Props) {
+  if (!game.winnerId) return null
+
   const isP1Winner = game.winnerId === game.player1.id
   const winner = isP1Winner ? game.player1 : game.player2
   const loser = isP1Winner ? game.player2 : game.player1
-  const isWinnerP1 = isP1Winner
 
   const completedSets = game.sets.filter((s) => s.completedAt != null)
   const p1Sets = completedSets.filter((s) => s.player1Score > s.player2Score).length
@@ -82,12 +83,12 @@ export function WinnerHeroCard({ game }: Props) {
         <div className="relative">
           <div
             className="absolute inset-[-8px] rounded-md border-2 border-current opacity-35"
-            style={{ color: isWinnerP1 ? '#ff5b1f' : '#3b82f6' }}
+            style={{ color: isP1Winner ? 'var(--color-primary)' : '#3b82f6' }}
           />
           <div
             className={cn(
               'relative flex h-[104px] w-[104px] items-center justify-center rounded-md font-display text-5xl font-black',
-              playerTileClasses(isWinnerP1),
+              playerTileClasses(isP1Winner),
             )}
           >
             {initials(winner.nickname)}
@@ -98,10 +99,10 @@ export function WinnerHeroCard({ game }: Props) {
         <p
           className={cn(
             'text-[11px] font-display uppercase tracking-[0.24em]',
-            playerAccentClasses(isWinnerP1),
+            playerAccentClasses(isP1Winner),
           )}
         >
-          {isWinnerP1 ? 'PLAYER A' : 'PLAYER B'} · WIN
+          {isP1Winner ? 'PLAYER A' : 'PLAYER B'} · WIN
         </p>
 
         {/* WINNER NAME */}
@@ -118,7 +119,7 @@ export function WinnerHeroCard({ game }: Props) {
             <span
               className={cn(
                 'font-display text-[28px] font-black tabular-nums leading-none',
-                playerAccentClasses(isWinnerP1),
+                playerAccentClasses(isP1Winner),
               )}
             >
               {winnerSets}
@@ -140,7 +141,7 @@ export function WinnerHeroCard({ game }: Props) {
       {/* BOTTOM: VS strip */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-t bg-background/40 px-6 py-5">
         {/* Winner side (left, right-aligned) */}
-        <PlayerLine player={winner} isP1={isWinnerP1} sets={winnerSets} label="WIN" align="right" />
+        <PlayerLine player={winner} isP1={isP1Winner} sets={winnerSets} label="WIN" align="right" />
         {/* Center VS */}
         <span className="font-display text-sm uppercase tracking-[0.18em] text-muted-foreground">
           vs
@@ -149,7 +150,7 @@ export function WinnerHeroCard({ game }: Props) {
         <div className="opacity-55">
           <PlayerLine
             player={loser}
-            isP1={!isWinnerP1}
+            isP1={!isP1Winner}
             sets={loserSets}
             label="LOSS"
             align="left"

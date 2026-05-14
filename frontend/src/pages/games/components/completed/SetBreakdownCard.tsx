@@ -36,7 +36,7 @@ export function SetBreakdownCard({ game }: Props) {
 
           return (
             <div
-              key={i}
+              key={set.completedAt ?? i}
               className="grid grid-cols-[60px_1fr_auto_56px] items-center gap-3 rounded-md border bg-background/40 px-3.5 py-3"
             >
               {/* Set label */}

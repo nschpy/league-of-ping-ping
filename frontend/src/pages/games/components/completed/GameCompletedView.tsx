@@ -10,7 +10,7 @@ interface Props {
 
 export function GameCompletedView({ game }: Props) {
   return (
-    <div className="flex flex-col gap-5 px-4 sm:px-6 pb-8">
+    <div className="flex flex-col gap-5 px-4 pt-6 pb-8 sm:px-6">
       <CompletedMetaRow game={game} />
       <WinnerHeroCard game={game} />
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.4fr_1fr]">

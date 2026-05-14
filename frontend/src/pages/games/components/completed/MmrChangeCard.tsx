@@ -67,6 +67,8 @@ export function MmrChangeCard({ game }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  if (!game.winnerId) return null
+
   const isP1Winner = game.winnerId === game.player1.id
   const p1Change = game.player1MmrChange ?? 0
   const p2Change = game.player2MmrChange ?? 0
