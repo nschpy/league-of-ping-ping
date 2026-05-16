@@ -220,13 +220,20 @@ export const UserService = {
       $or: [{ player1Id: userId }, { player2Id: userId }],
       status: 'completed',
     }
+    if (outcome === 'win') {
+      filter.winnerId = userId
+    } else if (outcome === 'loss') {
+      // For completed games, winnerId is always set (not null), so $ne userId = loss
+      filter.winnerId = { $ne: userId }
+    }
 
-    const allGames = await GameModel.find(filter)
+    const games = await GameModel.find(filter)
       .populate<{ player1Id: PopulatedUser; player2Id: PopulatedUser }>('player1Id player2Id', 'nickname mmr')
       .sort({ completedAt: -1 })
+      .limit(limit)
       .lean<PopulatedGame[]>()
 
-    const mapped: RecentGameItem[] = allGames.map((g) => {
+    const items: RecentGameItem[] = games.map((g) => {
       const userIsP1 = g.player1Id._id.toString() === userId
       const opponent = userIsP1 ? g.player2Id : g.player1Id
       const mmrDelta = userIsP1 ? (g.player1MmrChange ?? 0) : (g.player2MmrChange ?? 0)
@@ -255,9 +262,6 @@ export const UserService = {
         completedAt: g.completedAt != null ? (g.completedAt as unknown as Date).toISOString() : '',
       }
     })
-
-    const filtered = outcome != null ? mapped.filter((item) => item.outcome === outcome) : mapped
-    const items = filtered.slice(0, limit)
 
     return { items }
   },
