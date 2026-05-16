@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
-import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MobileSidebar } from './MobileSidebar'
 import { TopbarSearch } from './TopbarSearch'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuthStore } from '@/stores/auth'
 
 export function Topbar() {
@@ -23,10 +23,7 @@ export function Topbar() {
         <Link to="/games/new">Создать игру</Link>
       </Button>
 
-      {/* Bell */}
-      <Button variant="ghost" size="icon">
-        <Bell className="h-4 w-4" />
-      </Button>
+      <ThemeToggle />
 
       {/* User avatar + dropdown */}
       {user && (

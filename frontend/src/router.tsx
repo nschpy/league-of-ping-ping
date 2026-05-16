@@ -35,6 +35,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <div style={{ padding: '2rem', color: '#fff', fontFamily: 'Inter' }}>404 — страница не найдена</div>,
+    element: <div style={{ padding: '2rem', fontFamily: 'Inter' }}>404 — страница не найдена</div>,
   },
 ])

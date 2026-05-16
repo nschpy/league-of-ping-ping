@@ -13,7 +13,9 @@ interface Props {
 export function Scoreboard({ game, isReferee, onAddPoint, onUndo }: Props) {
   const disabled = game.status !== 'in_progress'
   const currentSet = game.sets[game.sets.length - 1]
-  const canUndo = game.status === 'in_progress' && (currentSet?.points.length ?? 0) > 0
+  const lastPoint = currentSet?.points[currentSet.points.length - 1]
+  const canUndoP1 = game.status === 'in_progress' && lastPoint?.scorer === 'p1'
+  const canUndoP2 = game.status === 'in_progress' && lastPoint?.scorer === 'p2'
 
   if (!isReferee) {
     return <ScoreCenter game={game} />
@@ -45,8 +47,8 @@ export function Scoreboard({ game, isReferee, onAddPoint, onUndo }: Props) {
       <div className="fixed bottom-0 left-0 right-0 z-40 flex flex-col gap-2 border-t bg-card px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] md:hidden">
         {/* UNDO row */}
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="flex-1 text-xs font-semibold uppercase tracking-widest" disabled={!canUndo} onClick={onUndo}>↶ UNDO A</Button>
-          <Button variant="outline" size="sm" className="flex-1 text-xs font-semibold uppercase tracking-widest" disabled={!canUndo} onClick={onUndo}>↶ UNDO B</Button>
+          <Button variant="outline" size="sm" className="flex-1 text-xs font-semibold uppercase tracking-widest" disabled={!canUndoP1} onClick={onUndo}>↶ UNDO A</Button>
+          <Button variant="outline" size="sm" className="flex-1 text-xs font-semibold uppercase tracking-widest" disabled={!canUndoP2} onClick={onUndo}>↶ UNDO B</Button>
         </div>
         {/* +1 row */}
         <div className="flex gap-2">

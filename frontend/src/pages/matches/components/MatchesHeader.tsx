@@ -36,7 +36,7 @@ export function MatchesHeader({ matches }: MatchesHeaderProps) {
   ]
 
   return (
-    <div className="flex items-end justify-between gap-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
       <div>
         <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">
           история · {matches.length} матчей
@@ -49,11 +49,11 @@ export function MatchesHeader({ matches }: MatchesHeaderProps) {
         </h1>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-2 sm:gap-4">
         {tiles.map((tile) => (
           <div
             key={tile.label}
-            className="bg-card rounded-lg border border-border text-center px-5 py-2.5"
+            className="bg-card rounded-lg border border-border text-center px-3 sm:px-5 py-2 sm:py-2.5 flex-1 sm:flex-none"
           >
             <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">
               {tile.label}
