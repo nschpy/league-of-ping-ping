@@ -18,4 +18,10 @@ export const sidebarItems: SidebarItem[] = [
     label: 'Создать игру',
     iconPath: 'M8 5v14l11-7z',
   },
+  {
+    key: 'matches',
+    to: '/matches',
+    label: 'Матчи',
+    iconPath: 'M3 5h18v2H3zm0 6h18v2H3zm0 6h18v2H3z',
+  },
 ]

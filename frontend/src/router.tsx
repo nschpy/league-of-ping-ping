@@ -7,6 +7,7 @@ import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { AppShell } from '@/components/layout/AppShell'
 import { CreateGamePage } from '@/pages/games/CreateGamePage'
 import { GameViewPage } from '@/pages/games/GameViewPage'
+import { MatchesPage } from '@/pages/matches/MatchesPage'
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'games/new', element: <CreateGamePage /> },
           { path: 'games/:id', element: <GameViewPage /> },
+          { path: 'matches', element: <MatchesPage /> },
         ],
       },
     ],
