@@ -1,5 +1,6 @@
 export function relativeTime(isoDate: string): string {
   const diff = Date.now() - new Date(isoDate).getTime()
+  if (isNaN(diff) || diff < 0) return ''
   const mins = Math.floor(diff / 60_000)
   if (mins < 1) return 'только что'
   if (mins < 60) return `${mins}м назад`
