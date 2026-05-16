@@ -89,26 +89,42 @@ export function ProfileHeroCard({ data, onEdit }: ProfileHeroCardProps) {
   ]
 
   return (
-    <div className="bg-card rounded-lg border border-border overflow-hidden relative shadow-sm">
+    <div
+      className="bg-card rounded-lg border border-border overflow-hidden relative shadow-sm"
+      style={{
+        backgroundImage:
+          'linear-gradient(135deg, rgba(255,91,31,0.08) 0%, rgba(255,91,31,0) 55%)',
+      }}
+    >
+      <div
+        className="absolute top-0 inset-x-0 h-[3px] z-10"
+        style={{ background: 'linear-gradient(90deg, #ff5b1f, #ffb600)' }}
+      />
       {/* Grid: col1 | col2 | col3 */}
-      <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto]">
+      <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] lg:items-stretch">
         {/* Column 1: Avatar + tier + achievements */}
-        <div className="p-6 lg:p-8 flex flex-col items-center gap-4 border-b lg:border-b-0 lg:border-r border-border">
+        <div className="p-6 lg:py-8 lg:px-9 flex flex-col items-center gap-[14px] border-b lg:border-b-0 lg:border-r border-border">
           {/* Avatar */}
-          <div
-            className="w-24 h-24 rounded-lg border-2 border-primary flex items-center justify-center shrink-0"
-            style={{ background: avatarBg }}
-          >
-            <span
-              className="text-primary"
-              style={{ fontFamily: 'var(--font-display)', fontSize: 38, fontWeight: 700, lineHeight: 1 }}
+          <div className="relative shrink-0">
+            <div
+              className="w-24 h-24 rounded-lg border-2 border-primary flex items-center justify-center"
+              style={{ background: avatarBg }}
             >
-              {avatarInitials}
-            </span>
+              <span
+                className="text-primary"
+                style={{ fontFamily: 'var(--font-display)', fontSize: 38, fontWeight: 700, lineHeight: 1 }}
+              >
+                {avatarInitials}
+              </span>
+            </div>
+            <span
+              className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-success border-2 border-card"
+              style={{ boxShadow: '0 0 8px var(--success, #36d97f)' }}
+            />
           </div>
 
           {/* Tier badge */}
-          <div className="bg-primary/10 text-primary border border-primary/40 rounded-full px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-widest">
+          <div className="bg-primary/10 text-primary border border-primary/40 rounded-full px-3.5 py-1 text-[11px] font-mono font-bold uppercase tracking-widest">
             {user.tier.name}
           </div>
 
@@ -120,12 +136,12 @@ export function ProfileHeroCard({ data, onEdit }: ProfileHeroCardProps) {
                   key={ach.key}
                   className="flex items-center gap-2 px-2.5 py-1.5 bg-muted/40 rounded-md w-full"
                 >
-                  <span style={{ fontSize: 16 }}>
+                  <span style={{ fontSize: 16, lineHeight: 1 }}>
                     {ACHIEVEMENT_ICONS[ach.key] ?? '🏅'}
                   </span>
-                  <div>
-                    <div className="text-[12px] font-semibold text-foreground">{ach.label}</div>
-                    <div className="text-[10px] font-mono text-muted-foreground">{ach.sub}</div>
+                  <div className="min-w-0">
+                    <div className="text-[12px] font-semibold text-foreground leading-tight truncate">{ach.label}</div>
+                    <div className="text-[10px] font-mono text-muted-foreground leading-tight truncate">{ach.sub}</div>
                   </div>
                 </div>
               ))}
@@ -134,10 +150,10 @@ export function ProfileHeroCard({ data, onEdit }: ProfileHeroCardProps) {
         </div>
 
         {/* Column 2: Nickname + meta + stats grid */}
-        <div className="p-6 lg:p-8 border-b lg:border-b-0 lg:border-r border-border">
+        <div className="p-6 lg:p-8 border-b lg:border-b-0 lg:border-r border-border min-w-0">
           {/* Nickname */}
           <div
-            className="text-foreground"
+            className="text-foreground break-words"
             style={{
               fontFamily: 'var(--font-display)',
               fontSize: 'clamp(28px, 5vw, 42px)',
@@ -151,23 +167,23 @@ export function ProfileHeroCard({ data, onEdit }: ProfileHeroCardProps) {
 
           {/* Meta row */}
           {metaItems.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[12px] font-mono text-muted-foreground">
               {metaItems.map((item, idx) => (
-                <span key={idx} className="flex items-center gap-2">
+                <span key={idx} className="flex items-center gap-3">
                   {idx > 0 && (
-                    <span className="text-muted-foreground/60 text-[12px] font-mono">·</span>
+                    <span aria-hidden className="text-muted-foreground/50">·</span>
                   )}
-                  <span className="text-[12px] font-mono text-muted-foreground">{item}</span>
+                  <span>{item}</span>
                 </span>
               ))}
             </div>
           )}
 
           {/* Stats grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[14px] mt-5">
             {statBlocks.map((stat) => (
-              <div key={stat.label} className="bg-muted/40 rounded-md px-3 py-2.5">
-                <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">
+              <div key={stat.label} className="bg-muted/40 rounded-md px-3.5 py-3">
+                <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1 truncate">
                   {stat.label}
                 </div>
                 <div
@@ -178,6 +194,7 @@ export function ProfileHeroCard({ data, onEdit }: ProfileHeroCardProps) {
                     letterSpacing: '-0.01em',
                     fontWeight: 700,
                     lineHeight: 1.1,
+                    fontVariantNumeric: 'tabular-nums',
                   }}
                 >
                   {stat.value}
@@ -188,7 +205,7 @@ export function ProfileHeroCard({ data, onEdit }: ProfileHeroCardProps) {
         </div>
 
         {/* Column 3: MMR + rank + edit */}
-        <div className="p-6 lg:p-8 flex flex-col gap-5 min-w-[160px]">
+        <div className="p-6 lg:py-8 lg:px-7 flex flex-col gap-5 lg:min-w-[180px]">
           {/* MMR block */}
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">
@@ -251,7 +268,12 @@ export function ProfileHeroCard({ data, onEdit }: ProfileHeroCardProps) {
 
           {/* Edit button */}
           {user.isMe && (
-            <Button variant="ghost" size="sm" className="w-full" onClick={onEdit}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full bg-transparent border-muted-foreground/30 text-muted-foreground hover:text-foreground hover:bg-muted/30 text-[11px] font-mono uppercase tracking-widest"
+              onClick={onEdit}
+            >
               Редактировать
             </Button>
           )}
