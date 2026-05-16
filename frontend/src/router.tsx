@@ -8,6 +8,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { CreateGamePage } from '@/pages/games/CreateGamePage'
 import { GameViewPage } from '@/pages/games/GameViewPage'
 import { MatchesPage } from '@/pages/matches/MatchesPage'
+import { ProfilePage } from '@/pages/profile/ProfilePage'
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,8 @@ export const router = createBrowserRouter([
           { path: 'games/new', element: <CreateGamePage /> },
           { path: 'games/:id', element: <GameViewPage /> },
           { path: 'matches', element: <MatchesPage /> },
+          { path: 'profile', element: <ProfilePage /> },
+          { path: 'profile/:id', element: <ProfilePage /> },
         ],
       },
     ],
