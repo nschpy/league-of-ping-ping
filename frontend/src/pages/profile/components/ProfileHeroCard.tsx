@@ -82,7 +82,7 @@ export function ProfileHeroCard({ data, onEdit }: ProfileHeroCardProps) {
       colorClass: undefined,
     },
     {
-      label: 'Ср. сеты/W',
+      label: 'Сеты против/W',
       value: stats.avgSetsPerWin !== null ? stats.avgSetsPerWin.toFixed(1) : '—',
       colorClass: undefined,
     },

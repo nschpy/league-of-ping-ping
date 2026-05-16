@@ -28,9 +28,9 @@ export function MmrHeroCard({ stats }: MmrHeroCardProps) {
     <div className="relative bg-card rounded-lg border border-border overflow-hidden">
       {/* Top accent stripe */}
       <div className="absolute top-0 inset-x-0 h-[2px] bg-primary" />
-      <div className="grid grid-cols-[1.55fr_1fr]">
+      <div className="grid grid-cols-1 sm:grid-cols-[1.55fr_1fr]">
         {/* Left — MMR hero */}
-        <div className="p-8 flex flex-col gap-4">
+        <div className="p-6 sm:p-8 flex flex-col gap-4">
           {/* Label row */}
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-success shrink-0" />
@@ -42,7 +42,7 @@ export function MmrHeroCard({ stats }: MmrHeroCardProps) {
           {/* Giant MMR + delta */}
           <div className="flex items-baseline gap-3">
             <span
-              style={{ fontFamily: 'var(--font-display)', fontSize: 112, lineHeight: 1, letterSpacing: '-0.02em' }}
+              style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(72px, 20vw, 112px)', lineHeight: 1, letterSpacing: '-0.02em' }}
               className="text-foreground"
             >
               {mmr}
@@ -78,7 +78,7 @@ export function MmrHeroCard({ stats }: MmrHeroCardProps) {
         </div>
 
         {/* Right — stats */}
-        <div className="p-8 flex flex-col justify-center gap-6 border-l border-border">
+        <div className="p-6 sm:p-8 flex flex-col justify-center gap-6 border-t sm:border-t-0 sm:border-l border-border">
           <StatRow
             label="Винрейт"
             value={winRate ? `${winRate.percent}%` : '—'}

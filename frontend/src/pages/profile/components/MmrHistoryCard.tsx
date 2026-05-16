@@ -1,10 +1,11 @@
+import { useId } from 'react'
 import type { ProfileResult } from '@/lib/types/profile'
 
 const CHART_W = 700
 const CHART_H = 160
-const GRAD_ID = 'mmr-history-gradient'
 
 export function MmrHistoryCard({ history }: { history: ProfileResult['mmrHistory'] }) {
+  const gradId = useId()
   // Ensure at least 2 points for the chart (duplicate single point for flat line)
   const rawPoints = history.points.length === 0
     ? [{ label: '—', mmr: 1000 }]
@@ -90,7 +91,7 @@ export function MmrHistoryCard({ history }: { history: ProfileResult['mmrHistory
         aria-hidden="true"
       >
         <defs>
-          <linearGradient id={GRAD_ID} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.2" />
             <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
           </linearGradient>
@@ -111,7 +112,7 @@ export function MmrHistoryCard({ history }: { history: ProfileResult['mmrHistory
         ))}
 
         {/* Area fill */}
-        <path d={areaD} fill={`url(#${GRAD_ID})`} />
+        <path d={areaD} fill={`url(#${gradId})`} />
 
         {/* Line */}
         <path

@@ -334,11 +334,14 @@ function buildMmrHistoryFromGames(
     }
     const sorted = [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b))
 
+    // Cap to last 12 months so chart labels don't overlap
+    const capped = sorted.slice(-12)
+
     // Include year suffix when history spans multiple calendar years to avoid duplicate labels
-    const years = new Set(sorted.map(([, v]) => v.year))
+    const years = new Set(capped.map(([, v]) => v.year))
     const multiYear = years.size > 1
 
-    let points = sorted.map(([, v]) => ({
+    let points = capped.map(([, v]) => ({
       label: multiYear ? `${MONTHS_RU[v.monthIndex]!} ${String(v.year).slice(-2)}` : MONTHS_RU[v.monthIndex]!,
       mmr: v.mmr,
     }))
@@ -488,6 +491,13 @@ export const UserService = {
     const mongoOp: Record<string, Record<string, unknown>> = {}
     if (Object.keys(setOp).length > 0) mongoOp.$set = setOp
     if (Object.keys(unsetOp).length > 0) mongoOp.$unset = unsetOp
+
+    // Nothing to update — return current user without a DB write
+    if (Object.keys(mongoOp).length === 0) {
+      const current = await UserRepository.findById(userId)
+      if (current == null) throw Object.assign(new Error('User not found'), { statusCode: 404 })
+      return current
+    }
 
     const updated = await UserModel.findByIdAndUpdate(userId, mongoOp, { new: true }).lean<IUser>()
     if (updated == null) {

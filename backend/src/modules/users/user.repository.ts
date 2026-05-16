@@ -50,8 +50,4 @@ export const UserRepository = {
       { nickname: { $regex: `^${escaped}$`, $options: 'i' }, _id: { $ne: excludeId } },
     ).lean<IUser>()
   },
-
-  updateById(id: string, patch: Partial<Pick<IUser, 'nickname' | 'city'>> | Record<string, unknown>): Promise<IUser | null> {
-    return UserModel.findByIdAndUpdate(id, { $set: patch }, { new: true }).lean<IUser>()
-  },
 }
