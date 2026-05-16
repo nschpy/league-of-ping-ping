@@ -1,6 +1,7 @@
 import type { TierInfo } from '../../core/tier.js'
 import { getTierForMmr } from '../../core/tier.js'
 import type { IUser } from '../../core/models/User.js'
+import { UserModel } from '../../core/models/User.js'
 import type { IGame } from '../../core/models/Game.js'
 import { GameModel } from '../../core/models/Game.js'
 import { UserRepository } from './user.repository.js'
@@ -295,6 +296,67 @@ function deriveAchievements(params: {
   return results.slice(0, 3)
 }
 
+// Pure helper: compute MMR history from pre-fetched ASC-sorted games + user createdAt.
+// Extracted so getProfile can reuse already-fetched games without an extra DB round-trip.
+function buildMmrHistoryFromGames(
+  gamesAsc: IGame[],
+  userId: string,
+  createdAt: Date,
+): { bucket: 'month' | 'match'; points: Array<{ label: string; mmr: number }> } {
+  const MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
+
+  const allPoints: Array<{ date: Date; mmr: number }> = [{ date: createdAt, mmr: 1000 }]
+
+  for (const g of gamesAsc) {
+    const isP1 = String(g.player1Id) === userId
+    const mmrBefore = isP1 ? g.player1MmrBefore : g.player2MmrBefore
+    const mmrChange = isP1 ? g.player1MmrChange : g.player2MmrChange
+    if (mmrBefore == null || mmrChange == null) continue
+    const date = g.completedAt instanceof Date ? g.completedAt : new Date(g.completedAt as unknown as string)
+    allPoints.push({ date, mmr: mmrBefore + mmrChange })
+  }
+
+  if (allPoints.length === 1) {
+    return { bucket: 'match', points: [{ label: 'старт', mmr: 1000 }] }
+  }
+
+  const gamePoints = allPoints.slice(1)
+  const distinctMonths = new Set(
+    gamePoints.map((p) => `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}`),
+  )
+  const bucket: 'month' | 'match' = distinctMonths.size >= 3 ? 'month' : 'match'
+
+  if (bucket === 'month') {
+    const byMonth: Map<string, { mmr: number; monthIndex: number; year: number }> = new Map()
+    for (const p of allPoints) {
+      const key = `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}`
+      byMonth.set(key, { mmr: p.mmr, monthIndex: p.date.getMonth(), year: p.date.getFullYear() })
+    }
+    const sorted = [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b))
+
+    // Include year suffix when history spans multiple calendar years to avoid duplicate labels
+    const years = new Set(sorted.map(([, v]) => v.year))
+    const multiYear = years.size > 1
+
+    let points = sorted.map(([, v]) => ({
+      label: multiYear ? `${MONTHS_RU[v.monthIndex]!} ${String(v.year).slice(-2)}` : MONTHS_RU[v.monthIndex]!,
+      mmr: v.mmr,
+    }))
+
+    // Frontend chart requires ≥ 2 points to draw a line
+    if (points.length === 1) points = [points[0]!, points[0]!]
+    return { bucket: 'month', points }
+  } else {
+    const recent = allPoints.slice(-10)
+    const points = recent.map((p, i) => {
+      if (i === 0 && recent[0] === allPoints[0]) return { label: 'старт', mmr: p.mmr }
+      const d = p.date
+      return { label: `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`, mmr: p.mmr }
+    })
+    return { bucket: 'match', points }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
@@ -341,89 +403,13 @@ export const UserService = {
     if (user == null) {
       throw Object.assign(new Error('User not found'), { statusCode: 404 })
     }
-
     const games = await GameModel.find(
-      {
-        $or: [{ player1Id: userId }, { player2Id: userId }],
-        status: 'completed',
-      },
-    )
-      .sort({ completedAt: 1 })
-      .lean<IGame[]>()
+      { $or: [{ player1Id: userId }, { player2Id: userId }], status: 'completed' },
+    ).sort({ completedAt: 1 }).lean<IGame[]>()
 
-    // Build list of { date, mmr } points
     const userWithTs = user as IUser & { createdAt: Date }
-    const seedDate = userWithTs.createdAt instanceof Date ? userWithTs.createdAt : new Date()
-    const allPoints: Array<{ date: Date; mmr: number }> = [
-      { date: seedDate, mmr: 1000 },
-    ]
-
-    for (const g of games) {
-      const isP1 = String(g.player1Id) === userId
-      const mmrBefore = isP1 ? g.player1MmrBefore : g.player2MmrBefore
-      const mmrChange = isP1 ? g.player1MmrChange : g.player2MmrChange
-      if (mmrBefore == null || mmrChange == null) continue
-      const mmrAfter = mmrBefore + mmrChange
-      const date = g.completedAt instanceof Date ? g.completedAt : new Date(g.completedAt as unknown as string)
-      allPoints.push({ date, mmr: mmrAfter })
-    }
-
-    // If no games, return just the seed
-    if (allPoints.length === 1) {
-      return { bucket: 'match', points: [{ label: 'старт', mmr: 1000 }] }
-    }
-
-    // Determine distinct YYYY-MM months from game points (excluding seed)
-    const gamePoints = allPoints.slice(1)
-    const monthKeys = new Set(
-      gamePoints.map((p) => {
-        const d = p.date
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      }),
-    )
-
-    const bucket: 'month' | 'match' = monthKeys.size >= 3 ? 'month' : 'match'
-
-    const MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
-
-    if (bucket === 'month') {
-      // Group all points (including seed) by YYYY-MM, take last mmr per month
-      const byMonth: Map<string, { mmr: number; monthIndex: number; year: number }> = new Map()
-      for (const p of allPoints) {
-        const key = `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}`
-        byMonth.set(key, { mmr: p.mmr, monthIndex: p.date.getMonth(), year: p.date.getFullYear() })
-      }
-
-      // Sort chronologically
-      const sorted = [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b))
-
-      let points = sorted.map(([, v]) => ({
-        label: MONTHS_RU[v.monthIndex]!,
-        mmr: v.mmr,
-      }))
-
-      // Ensure at least 2 points
-      if (points.length === 1) {
-        points = [points[0]!, points[0]!]
-      }
-
-      return { bucket: 'month', points }
-    } else {
-      // Take last 10 points
-      const recent = allPoints.slice(-10)
-      const points = recent.map((p, i) => {
-        // Seed point gets special label
-        if (i === 0 && recent[0] === allPoints[0]) {
-          return { label: 'старт', mmr: p.mmr }
-        }
-        const d = p.date
-        const dd = String(d.getDate()).padStart(2, '0')
-        const mm = String(d.getMonth() + 1).padStart(2, '0')
-        return { label: `${dd}.${mm}`, mmr: p.mmr }
-      })
-
-      return { bucket: 'match', points }
-    }
+    const createdAt = userWithTs.createdAt instanceof Date ? userWithTs.createdAt : new Date()
+    return buildMmrHistoryFromGames(games, userId, createdAt)
   },
 
   async getProfile(userId: string, viewerId: string): Promise<ProfileResult> {
@@ -435,14 +421,10 @@ export const UserService = {
     const tier = getTierForMmr(user.mmr)
     const rank = await UserRepository.countWithHigherMmr(user.mmr, userId) + 1
 
+    // Fetch once, sorted DESC for stats; reverse for history (no extra DB call)
     const games = await GameModel.find(
-      {
-        $or: [{ player1Id: userId }, { player2Id: userId }],
-        status: 'completed',
-      },
-    )
-      .sort({ completedAt: -1 })
-      .lean<IGame[]>()
+      { $or: [{ player1Id: userId }, { player2Id: userId }], status: 'completed' },
+    ).sort({ completedAt: -1 }).lean<IGame[]>()
 
     const stats = computeStatsFromGames(games, userId)
     const achievements = deriveAchievements({
@@ -451,23 +433,22 @@ export const UserService = {
       bestWinStreak: stats.bestWinStreak,
       totalGames: stats.totalGames,
     })
-    const mmrHistory = await UserService.getMmrHistory(userId)
 
     const userWithTs = user as IUser & { _id: { toString(): string }; createdAt: Date }
-    const isMe = viewerId === userId
+    const createdAt = userWithTs.createdAt instanceof Date ? userWithTs.createdAt : new Date()
+    const mmrHistory = buildMmrHistoryFromGames([...games].reverse(), userId, createdAt)
 
+    const isMe = viewerId === userId
     const profileUser: ProfileResult['user'] = {
       id: userWithTs._id.toString(),
       nickname: user.nickname,
+      ...(isMe ? { email: user.email } : {}),
       city: user.city ?? null,
       mmr: user.mmr,
       tier,
       rank,
-      createdAt: (userWithTs.createdAt instanceof Date ? userWithTs.createdAt : new Date(userWithTs.createdAt)).toISOString(),
+      createdAt: createdAt.toISOString(),
       isMe,
-    }
-    if (isMe) {
-      profileUser.email = user.email
     }
 
     return {
@@ -489,24 +470,26 @@ export const UserService = {
 
   async updateMe(userId: string, patch: { nickname?: string; city?: string | null }): Promise<IUser> {
     if (patch.nickname !== undefined) {
-      if (!/^[a-zA-Z0-9._-]+$/.test(patch.nickname) || patch.nickname.length < 3 || patch.nickname.length > 20) {
-        throw Object.assign(new Error('Invalid nickname'), { statusCode: 400 })
-      }
       const existing = await UserRepository.findByNickname(patch.nickname, userId)
       if (existing != null) {
         throw Object.assign(new Error('Nickname already taken'), { statusCode: 409 })
       }
     }
 
-    const updatePatch: Record<string, unknown> = {}
-    if (patch.nickname !== undefined) {
-      updatePatch['nickname'] = patch.nickname
-    }
+    // Build $set and $unset ops separately: null city clears the field via $unset
+    const setOp: Record<string, unknown> = {}
+    const unsetOp: Record<string, 1> = {}
+    if (patch.nickname !== undefined) setOp.nickname = patch.nickname
     if (patch.city !== undefined) {
-      updatePatch['city'] = patch.city
+      if (patch.city === null) unsetOp.city = 1
+      else setOp.city = patch.city
     }
 
-    const updated = await UserRepository.updateById(userId, updatePatch)
+    const mongoOp: Record<string, Record<string, unknown>> = {}
+    if (Object.keys(setOp).length > 0) mongoOp.$set = setOp
+    if (Object.keys(unsetOp).length > 0) mongoOp.$unset = unsetOp
+
+    const updated = await UserModel.findByIdAndUpdate(userId, mongoOp, { new: true }).lean<IUser>()
     if (updated == null) {
       throw Object.assign(new Error('User not found'), { statusCode: 404 })
     }
