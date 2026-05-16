@@ -43,4 +43,15 @@ export const UserRepository = {
   countWithHigherMmr(mmr: number, excludeId: string): Promise<number> {
     return UserModel.countDocuments({ _id: { $ne: excludeId }, mmr: { $gt: mmr } })
   },
+
+  findByNickname(nickname: string, excludeId: string): Promise<IUser | null> {
+    const escaped = nickname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return UserModel.findOne(
+      { nickname: { $regex: `^${escaped}$`, $options: 'i' }, _id: { $ne: excludeId } },
+    ).lean<IUser>()
+  },
+
+  updateById(id: string, patch: Partial<Pick<IUser, 'nickname' | 'city'>> | Record<string, unknown>): Promise<IUser | null> {
+    return UserModel.findByIdAndUpdate(id, { $set: patch }, { new: true }).lean<IUser>()
+  },
 }

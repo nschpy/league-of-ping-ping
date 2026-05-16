@@ -58,6 +58,7 @@ export const MeStatsResponse = Type.Object({
   winRate: Type.Union([WinRateSchema, Type.Null()]),
   currentStreak: Type.Union([CurrentStreakSchema, Type.Null()]),
   bestWinStreak: Type.Union([Type.Integer(), Type.Null()]),
+  avgSetsPerWin: Type.Union([Type.Number(), Type.Null()]),
   favoriteFormat: Type.Union([FavoriteFormatSchema, Type.Null()]),
   avgSetPointDiff: Type.Union([Type.Number(), Type.Null()]),
 })
@@ -163,3 +164,72 @@ export const LeaderboardResponse = Type.Object({
   me: Type.Union([LeaderboardMeEntry, Type.Null()]),
 })
 export type LeaderboardResponse_type = Static<typeof LeaderboardResponse>
+
+// ---------------------------------------------------------------------------
+// Profile schemas
+// ---------------------------------------------------------------------------
+
+export const AchievementItem = Type.Object({
+  key: Type.String(),
+  label: Type.String(),
+  sub: Type.String(),
+})
+
+export const MmrHistoryPoint = Type.Object({
+  label: Type.String(),
+  mmr: Type.Integer(),
+})
+
+export const ProfileUserSchema = Type.Object({
+  id: Type.String(),
+  nickname: Type.String(),
+  email: Type.Optional(Type.String()),
+  city: Type.Union([Type.String(), Type.Null()]),
+  mmr: Type.Integer(),
+  tier: TierSchema,
+  rank: Type.Integer(),
+  createdAt: Type.String(),
+  isMe: Type.Boolean(),
+})
+
+export const ProfileStatsSchema = Type.Object({
+  totalGames: Type.Integer(),
+  wins: Type.Integer(),
+  losses: Type.Integer(),
+  winRate: Type.Union([WinRateSchema, Type.Null()]),
+  currentStreak: Type.Union([CurrentStreakSchema, Type.Null()]),
+  bestWinStreak: Type.Union([Type.Integer(), Type.Null()]),
+  avgSetsPerWin: Type.Union([Type.Number(), Type.Null()]),
+  lastDelta: Type.Union([Type.Integer(), Type.Null()]),
+})
+
+export const ProfileResponse = Type.Object({
+  user: ProfileUserSchema,
+  stats: ProfileStatsSchema,
+  achievements: Type.Array(AchievementItem),
+  mmrHistory: Type.Object({
+    bucket: Type.Union([Type.Literal('month'), Type.Literal('match')]),
+    points: Type.Array(MmrHistoryPoint),
+  }),
+})
+export type ProfileResponse_type = Static<typeof ProfileResponse>
+
+// ---------------------------------------------------------------------------
+// PATCH /users/me
+// ---------------------------------------------------------------------------
+
+export const PatchMeBody = Type.Object({
+  nickname: Type.Optional(Type.String({ minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9._-]+$' })),
+  city: Type.Optional(Type.Union([Type.String({ maxLength: 64 }), Type.Null()])),
+})
+export type PatchMeBody_type = Static<typeof PatchMeBody>
+
+export const PatchMeResponse = Type.Object({
+  id: Type.String(),
+  nickname: Type.String(),
+  email: Type.String(),
+  city: Type.Union([Type.String(), Type.Null()]),
+  mmr: Type.Integer(),
+  role: Type.String(),
+})
+export type PatchMeResponse_type = Static<typeof PatchMeResponse>

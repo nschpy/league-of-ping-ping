@@ -13,6 +13,9 @@ import {
   LiveGameResponse,
   ChallengeSuggestionsResponse,
   LeaderboardResponse,
+  ProfileResponse,
+  PatchMeBody,
+  PatchMeResponse,
 } from './user.schemas.js'
 import { UserService } from './user.service.js'
 
@@ -51,6 +54,64 @@ async function userRoutesPlugin(app: FastifyInstance): Promise<void> {
       }
       const results = await UserModel.find(filter, 'nickname mmr').limit(safeLimit).lean()
       return reply.send(results.map((u) => ({ id: u._id.toString(), nickname: u.nickname, mmr: u.mmr })))
+    },
+  })
+
+  // -------------------------------------------------------------------------
+  // GET /users/me/profile
+  // -------------------------------------------------------------------------
+  typedApp.get('/users/me/profile', {
+    schema: {
+      response: { 200: ProfileResponse, 401: ErrorResponse, 404: ErrorResponse },
+      tags: ['users'],
+    },
+    onRequest: app.authenticate,
+    handler: async (request, reply) => {
+      const userId = request.user.sub
+      const result = await UserService.getProfile(userId, userId)
+      return reply.send(result)
+    },
+  })
+
+  // -------------------------------------------------------------------------
+  // PATCH /users/me
+  // -------------------------------------------------------------------------
+  typedApp.patch('/users/me', {
+    schema: {
+      body: PatchMeBody,
+      response: { 200: PatchMeResponse, 400: ErrorResponse, 401: ErrorResponse, 404: ErrorResponse, 409: ErrorResponse },
+      tags: ['users'],
+    },
+    onRequest: app.authenticate,
+    handler: async (request, reply) => {
+      const userId = request.user.sub
+      const updated = await UserService.updateMe(userId, request.body)
+      return reply.send({
+        id: (updated._id as { toString(): string }).toString(),
+        nickname: updated.nickname,
+        email: updated.email,
+        city: updated.city ?? null,
+        mmr: updated.mmr,
+        role: updated.role,
+      })
+    },
+  })
+
+  // -------------------------------------------------------------------------
+  // GET /users/:id/profile
+  // -------------------------------------------------------------------------
+  typedApp.get('/users/:id/profile', {
+    schema: {
+      params: Type.Object({ id: Type.String({ pattern: '^[0-9a-fA-F]{24}$' }) }),
+      response: { 200: ProfileResponse, 401: ErrorResponse, 404: ErrorResponse },
+      tags: ['users'],
+    },
+    onRequest: app.authenticate,
+    handler: async (request, reply) => {
+      const { id } = request.params
+      const viewerId = request.user.sub
+      const result = await UserService.getProfile(id, viewerId)
+      return reply.send(result)
     },
   })
 

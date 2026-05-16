@@ -16,6 +16,7 @@ export interface MeStatsResult {
   winRate: { percent: number; wins: number; total: number } | null
   currentStreak: { kind: 'W' | 'L'; count: number } | null
   bestWinStreak: number | null
+  avgSetsPerWin: number | null
   favoriteFormat: { format: string; percent: number } | null
   avgSetPointDiff: number | null
 }
@@ -68,6 +69,35 @@ export interface LeaderboardResult {
   me: Omit<LeaderboardEntry, 'isMe'> | null
 }
 
+export interface ProfileResult {
+  user: {
+    id: string
+    nickname: string
+    email?: string
+    city: string | null
+    mmr: number
+    tier: TierInfo
+    rank: number
+    createdAt: string
+    isMe: boolean
+  }
+  stats: {
+    totalGames: number
+    wins: number
+    losses: number
+    winRate: { percent: number; wins: number; total: number } | null
+    currentStreak: { kind: 'W' | 'L'; count: number } | null
+    bestWinStreak: number | null
+    avgSetsPerWin: number | null
+    lastDelta: number | null
+  }
+  achievements: Array<{ key: string; label: string; sub: string }>
+  mmrHistory: {
+    bucket: 'month' | 'match'
+    points: Array<{ label: string; mmr: number }>
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Helper: populated user shape from GameModel.populate
 // ---------------------------------------------------------------------------
@@ -81,6 +111,188 @@ interface PopulatedUser {
 interface PopulatedGame extends Omit<IGame, 'player1Id' | 'player2Id'> {
   player1Id: PopulatedUser
   player2Id: PopulatedUser
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
+
+interface ComputedStats {
+  totalGames: number
+  wins: number
+  losses: number
+  winRate: { percent: number; wins: number; total: number } | null
+  currentStreak: { kind: 'W' | 'L'; count: number } | null
+  bestWinStreak: number | null
+  avgSetsPerWin: number | null
+  lastDelta: number | null
+  favoriteFormat: { format: string; percent: number } | null
+  avgSetPointDiff: number | null
+}
+
+function computeStatsFromGames(games: IGame[], userId: string): ComputedStats {
+  const total = games.length
+  if (total === 0) {
+    return {
+      totalGames: 0,
+      wins: 0,
+      losses: 0,
+      winRate: null,
+      currentStreak: null,
+      bestWinStreak: null,
+      avgSetsPerWin: null,
+      lastDelta: null,
+      favoriteFormat: null,
+      avgSetPointDiff: null,
+    }
+  }
+
+  // lastDelta
+  const mostRecent = games[0]!
+  const isP1Most = String(mostRecent.player1Id) === userId
+  const lastDelta = isP1Most ? mostRecent.player1MmrChange : mostRecent.player2MmrChange
+
+  // wins / losses
+  const wins = games.filter((g) => String(g.winnerId) === userId).length
+  const losses = total - wins
+  const winRate = {
+    percent: Math.round((wins / total) * 100),
+    wins,
+    total,
+  }
+
+  // currentStreak
+  let currentStreak: { kind: 'W' | 'L'; count: number } | null = null
+  {
+    const firstKind: 'W' | 'L' = String(games[0]!.winnerId) === userId ? 'W' : 'L'
+    let count = 0
+    for (const g of games) {
+      const kind: 'W' | 'L' = String(g.winnerId) === userId ? 'W' : 'L'
+      if (kind === firstKind) {
+        count++
+      } else {
+        break
+      }
+    }
+    currentStreak = { kind: firstKind, count }
+  }
+
+  // bestWinStreak
+  let bestWinStreak = 0
+  {
+    let streak = 0
+    for (const g of games) {
+      if (String(g.winnerId) === userId) {
+        streak++
+        if (streak > bestWinStreak) bestWinStreak = streak
+      } else {
+        streak = 0
+      }
+    }
+  }
+
+  // avgSetsPerWin: for each game the user won, count opponent set wins
+  let avgSetsPerWin: number | null = null
+  {
+    if (wins > 0) {
+      let totalOpponentSets = 0
+      for (const g of games) {
+        if (String(g.winnerId) !== userId) continue
+        const userIsP1 = String(g.player1Id) === userId
+        for (const s of g.sets) {
+          const oppScore = userIsP1 ? s.player2Score : s.player1Score
+          const userScore = userIsP1 ? s.player1Score : s.player2Score
+          if (oppScore > userScore) {
+            totalOpponentSets++
+          }
+        }
+      }
+      avgSetsPerWin = Math.round((totalOpponentSets / wins) * 10) / 10
+    }
+  }
+
+  // favoriteFormat
+  let favoriteFormat: { format: string; percent: number } | null = null
+  {
+    const formatCounts: Record<string, number> = {}
+    for (const g of games) {
+      formatCounts[g.format] = (formatCounts[g.format] ?? 0) + 1
+    }
+    let maxCount = 0
+    let maxFormat = ''
+    for (const [fmt, cnt] of Object.entries(formatCounts)) {
+      if (cnt > maxCount) {
+        maxCount = cnt
+        maxFormat = fmt
+      }
+    }
+    favoriteFormat = {
+      format: maxFormat,
+      percent: Math.round((maxCount / total) * 100),
+    }
+  }
+
+  // avgSetPointDiff
+  let avgSetPointDiff: number | null = null
+  {
+    let totalDiff = 0
+    let setCount = 0
+    for (const g of games) {
+      const userIsP1 = String(g.player1Id) === userId
+      for (const s of g.sets) {
+        const userScore = userIsP1 ? s.player1Score : s.player2Score
+        const oppScore = userIsP1 ? s.player2Score : s.player1Score
+        totalDiff += userScore - oppScore
+        setCount++
+      }
+    }
+    if (setCount > 0) {
+      avgSetPointDiff = Math.round((totalDiff / setCount) * 10) / 10
+    }
+  }
+
+  return {
+    totalGames: total,
+    wins,
+    losses,
+    winRate,
+    currentStreak,
+    bestWinStreak,
+    avgSetsPerWin,
+    lastDelta,
+    favoriteFormat,
+    avgSetPointDiff,
+  }
+}
+
+function deriveAchievements(params: {
+  rank: number
+  winRate: { percent: number; total: number } | null
+  bestWinStreak: number | null
+  totalGames: number
+}): Array<{ key: string; label: string; sub: string }> {
+  const { rank, winRate, bestWinStreak, totalGames } = params
+  const results: Array<{ key: string; label: string; sub: string }> = []
+
+  if (rank <= 3) {
+    results.push({ key: 'top3', label: 'Топ-3', sub: '#' + rank })
+  } else if (rank <= 10) {
+    results.push({ key: 'top10', label: 'Топ-10', sub: '#' + rank })
+  }
+
+  if (bestWinStreak != null && bestWinStreak >= 5) {
+    results.push({ key: 'streak', label: 'Серия ' + bestWinStreak + 'W', sub: 'рекорд' })
+  }
+
+  if (winRate != null && winRate.percent >= 60 && winRate.total >= 10) {
+    results.push({ key: 'winrate', label: winRate.percent + '% WR', sub: 'выше среднего' })
+  }
+
+  if (totalGames >= 50) {
+    results.push({ key: 'veteran', label: totalGames + ' матчей', sub: 'ветеран' })
+  }
+
+  return results.slice(0, 3)
 }
 
 // ---------------------------------------------------------------------------
@@ -106,113 +318,199 @@ export const UserService = {
       .sort({ completedAt: -1 })
       .lean<IGame[]>()
 
-    if (games.length === 0) {
-      return {
-        mmr,
-        tier,
-        lastDelta: null,
-        winRate: null,
-        currentStreak: null,
-        bestWinStreak: null,
-        favoriteFormat: null,
-        avgSetPointDiff: null,
-      }
-    }
-
-    // lastDelta
-    const mostRecent = games[0]!
-    const isP1 = String(mostRecent.player1Id) === userId
-    const lastDelta = isP1 ? mostRecent.player1MmrChange : mostRecent.player2MmrChange
-
-    // winRate
-    const total = games.length
-    const wins = games.filter((g) => String(g.winnerId) === userId).length
-    const winRate = {
-      percent: Math.round((wins / total) * 100),
-      wins,
-      total,
-    }
-
-    // currentStreak
-    let currentStreak: { kind: 'W' | 'L'; count: number } | null = null
-    {
-      const firstKind: 'W' | 'L' = String(games[0]!.winnerId) === userId ? 'W' : 'L'
-      let count = 0
-      for (const g of games) {
-        const kind: 'W' | 'L' = String(g.winnerId) === userId ? 'W' : 'L'
-        if (kind === firstKind) {
-          count++
-        } else {
-          break
-        }
-      }
-      currentStreak = { kind: firstKind, count }
-    }
-
-    // bestWinStreak
-    let bestWinStreak = 0
-    {
-      let streak = 0
-      for (const g of games) {
-        if (String(g.winnerId) === userId) {
-          streak++
-          if (streak > bestWinStreak) bestWinStreak = streak
-        } else {
-          streak = 0
-        }
-      }
-    }
-
-    // favoriteFormat
-    let favoriteFormat: { format: string; percent: number } | null = null
-    {
-      const formatCounts: Record<string, number> = {}
-      for (const g of games) {
-        formatCounts[g.format] = (formatCounts[g.format] ?? 0) + 1
-      }
-      let maxCount = 0
-      let maxFormat = ''
-      for (const [fmt, cnt] of Object.entries(formatCounts)) {
-        if (cnt > maxCount) {
-          maxCount = cnt
-          maxFormat = fmt
-        }
-      }
-      favoriteFormat = {
-        format: maxFormat,
-        percent: Math.round((maxCount / total) * 100),
-      }
-    }
-
-    // avgSetPointDiff
-    let avgSetPointDiff: number | null = null
-    {
-      let totalDiff = 0
-      let setCount = 0
-      for (const g of games) {
-        const userIsP1 = String(g.player1Id) === userId
-        for (const s of g.sets) {
-          const userScore = userIsP1 ? s.player1Score : s.player2Score
-          const oppScore = userIsP1 ? s.player2Score : s.player1Score
-          totalDiff += userScore - oppScore
-          setCount++
-        }
-      }
-      if (setCount > 0) {
-        avgSetPointDiff = Math.round((totalDiff / setCount) * 10) / 10
-      }
-    }
+    const computed = computeStatsFromGames(games, userId)
 
     return {
       mmr,
       tier,
-      lastDelta,
-      winRate,
-      currentStreak,
-      bestWinStreak,
-      favoriteFormat,
-      avgSetPointDiff,
+      lastDelta: computed.lastDelta,
+      winRate: computed.winRate,
+      currentStreak: computed.currentStreak,
+      bestWinStreak: computed.bestWinStreak,
+      avgSetsPerWin: computed.avgSetsPerWin,
+      favoriteFormat: computed.favoriteFormat,
+      avgSetPointDiff: computed.avgSetPointDiff,
     }
+  },
+
+  async getMmrHistory(userId: string): Promise<{
+    bucket: 'month' | 'match'
+    points: Array<{ label: string; mmr: number }>
+  }> {
+    const user = await UserRepository.findById(userId)
+    if (user == null) {
+      throw Object.assign(new Error('User not found'), { statusCode: 404 })
+    }
+
+    const games = await GameModel.find(
+      {
+        $or: [{ player1Id: userId }, { player2Id: userId }],
+        status: 'completed',
+      },
+    )
+      .sort({ completedAt: 1 })
+      .lean<IGame[]>()
+
+    // Build list of { date, mmr } points
+    const userWithTs = user as IUser & { createdAt: Date }
+    const seedDate = userWithTs.createdAt instanceof Date ? userWithTs.createdAt : new Date()
+    const allPoints: Array<{ date: Date; mmr: number }> = [
+      { date: seedDate, mmr: 1000 },
+    ]
+
+    for (const g of games) {
+      const isP1 = String(g.player1Id) === userId
+      const mmrBefore = isP1 ? g.player1MmrBefore : g.player2MmrBefore
+      const mmrChange = isP1 ? g.player1MmrChange : g.player2MmrChange
+      if (mmrBefore == null || mmrChange == null) continue
+      const mmrAfter = mmrBefore + mmrChange
+      const date = g.completedAt instanceof Date ? g.completedAt : new Date(g.completedAt as unknown as string)
+      allPoints.push({ date, mmr: mmrAfter })
+    }
+
+    // If no games, return just the seed
+    if (allPoints.length === 1) {
+      return { bucket: 'match', points: [{ label: 'старт', mmr: 1000 }] }
+    }
+
+    // Determine distinct YYYY-MM months from game points (excluding seed)
+    const gamePoints = allPoints.slice(1)
+    const monthKeys = new Set(
+      gamePoints.map((p) => {
+        const d = p.date
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      }),
+    )
+
+    const bucket: 'month' | 'match' = monthKeys.size >= 3 ? 'month' : 'match'
+
+    const MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
+
+    if (bucket === 'month') {
+      // Group all points (including seed) by YYYY-MM, take last mmr per month
+      const byMonth: Map<string, { mmr: number; monthIndex: number; year: number }> = new Map()
+      for (const p of allPoints) {
+        const key = `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}`
+        byMonth.set(key, { mmr: p.mmr, monthIndex: p.date.getMonth(), year: p.date.getFullYear() })
+      }
+
+      // Sort chronologically
+      const sorted = [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b))
+
+      let points = sorted.map(([, v]) => ({
+        label: MONTHS_RU[v.monthIndex]!,
+        mmr: v.mmr,
+      }))
+
+      // Ensure at least 2 points
+      if (points.length === 1) {
+        points = [points[0]!, points[0]!]
+      }
+
+      return { bucket: 'month', points }
+    } else {
+      // Take last 10 points
+      const recent = allPoints.slice(-10)
+      const points = recent.map((p, i) => {
+        // Seed point gets special label
+        if (i === 0 && recent[0] === allPoints[0]) {
+          return { label: 'старт', mmr: p.mmr }
+        }
+        const d = p.date
+        const dd = String(d.getDate()).padStart(2, '0')
+        const mm = String(d.getMonth() + 1).padStart(2, '0')
+        return { label: `${dd}.${mm}`, mmr: p.mmr }
+      })
+
+      return { bucket: 'match', points }
+    }
+  },
+
+  async getProfile(userId: string, viewerId: string): Promise<ProfileResult> {
+    const user = await UserRepository.findById(userId)
+    if (user == null) {
+      throw Object.assign(new Error('User not found'), { statusCode: 404 })
+    }
+
+    const tier = getTierForMmr(user.mmr)
+    const rank = await UserRepository.countWithHigherMmr(user.mmr, userId) + 1
+
+    const games = await GameModel.find(
+      {
+        $or: [{ player1Id: userId }, { player2Id: userId }],
+        status: 'completed',
+      },
+    )
+      .sort({ completedAt: -1 })
+      .lean<IGame[]>()
+
+    const stats = computeStatsFromGames(games, userId)
+    const achievements = deriveAchievements({
+      rank,
+      winRate: stats.winRate,
+      bestWinStreak: stats.bestWinStreak,
+      totalGames: stats.totalGames,
+    })
+    const mmrHistory = await UserService.getMmrHistory(userId)
+
+    const userWithTs = user as IUser & { _id: { toString(): string }; createdAt: Date }
+    const isMe = viewerId === userId
+
+    const profileUser: ProfileResult['user'] = {
+      id: userWithTs._id.toString(),
+      nickname: user.nickname,
+      city: user.city ?? null,
+      mmr: user.mmr,
+      tier,
+      rank,
+      createdAt: (userWithTs.createdAt instanceof Date ? userWithTs.createdAt : new Date(userWithTs.createdAt)).toISOString(),
+      isMe,
+    }
+    if (isMe) {
+      profileUser.email = user.email
+    }
+
+    return {
+      user: profileUser,
+      stats: {
+        totalGames: stats.totalGames,
+        wins: stats.wins,
+        losses: stats.losses,
+        winRate: stats.winRate,
+        currentStreak: stats.currentStreak,
+        bestWinStreak: stats.bestWinStreak,
+        avgSetsPerWin: stats.avgSetsPerWin,
+        lastDelta: stats.lastDelta,
+      },
+      achievements,
+      mmrHistory,
+    }
+  },
+
+  async updateMe(userId: string, patch: { nickname?: string; city?: string | null }): Promise<IUser> {
+    if (patch.nickname !== undefined) {
+      if (!/^[a-zA-Z0-9._-]+$/.test(patch.nickname) || patch.nickname.length < 3 || patch.nickname.length > 20) {
+        throw Object.assign(new Error('Invalid nickname'), { statusCode: 400 })
+      }
+      const existing = await UserRepository.findByNickname(patch.nickname, userId)
+      if (existing != null) {
+        throw Object.assign(new Error('Nickname already taken'), { statusCode: 409 })
+      }
+    }
+
+    const updatePatch: Record<string, unknown> = {}
+    if (patch.nickname !== undefined) {
+      updatePatch['nickname'] = patch.nickname
+    }
+    if (patch.city !== undefined) {
+      updatePatch['city'] = patch.city
+    }
+
+    const updated = await UserRepository.updateById(userId, updatePatch)
+    if (updated == null) {
+      throw Object.assign(new Error('User not found'), { statusCode: 404 })
+    }
+    return updated
   },
 
   async getRecentGames(userId: string, limit: number, outcome?: 'win' | 'loss'): Promise<RecentGamesResult> {
