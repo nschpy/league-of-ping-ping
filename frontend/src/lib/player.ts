@@ -10,3 +10,12 @@ export function playerTileClasses(isP1: boolean): string {
 export function playerAccentClasses(isP1: boolean): string {
   return isP1 ? 'text-primary' : 'text-blue-400'
 }
+
+export function avatarColor(seed: string): string {
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
+  }
+  const hue = hash % 360
+  return `hsl(${hue}, 70%, 55%)`
+}

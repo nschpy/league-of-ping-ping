@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MobileSidebar } from './MobileSidebar'
+import { TopbarSearch } from './TopbarSearch'
 import { useAuthStore } from '@/stores/auth'
 
 export function Topbar() {
@@ -13,13 +14,7 @@ export function Topbar() {
     <header className="h-16 border-b border-border flex items-center gap-3 px-4 bg-background">
       <MobileSidebar />
 
-      {/* Search bar (non-functional) */}
-      <div className="flex-1 max-w-sm hidden sm:flex items-center gap-2 h-9 px-3 rounded border border-border bg-card text-muted-foreground text-sm">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-        </svg>
-        Найти игрока, матч, турнир
-      </div>
+      <TopbarSearch />
 
       <div className="flex-1" />
 

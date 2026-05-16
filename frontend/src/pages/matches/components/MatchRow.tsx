@@ -27,7 +27,7 @@ export function MatchRow({ match, isLast }: MatchRowProps) {
       {/* Win/loss stripe */}
       <div
         className={cn(
-          'h-full w-[3px] rounded-r-[1px]',
+          'self-stretch w-[3px] rounded-r-[1px]',
           isWin ? 'bg-success' : 'bg-destructive',
         )}
       />
@@ -56,14 +56,14 @@ export function MatchRow({ match, isLast }: MatchRowProps) {
 
       {/* Sets */}
       <div className="flex items-center pr-4">
-        <SetsDisplay sets={match.setScores} outcome={match.outcome} />
+        <SetsDisplay sets={match.setScores} />
       </div>
 
       {/* MMR delta */}
       <span
         className={cn(
           'font-mono text-[13px] font-bold min-w-[44px] text-right pr-4',
-          match.mmrDelta > 0 ? 'text-success' : 'text-destructive',
+          match.mmrDelta > 0 ? 'text-success' : match.mmrDelta < 0 ? 'text-destructive' : 'text-muted-foreground',
         )}
       >
         {match.mmrDelta > 0 ? `+${match.mmrDelta}` : match.mmrDelta}

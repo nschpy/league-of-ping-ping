@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Clock, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth'
 import type { Game, GameFormat, PlayerSummary } from '@/lib/types'
 import { PlayersSection } from './components/PlayersSection'
 import { FormatSection } from './components/FormatSection'
@@ -11,13 +12,39 @@ import { PlayerPickerDialog } from './components/PlayerPickerDialog'
 
 export function CreateGamePage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const opponentId = searchParams.get('opponentId')
+  const me = useAuthStore((s) => s.user)
 
-  const [player1, setPlayer1] = useState<PlayerSummary | null>(null)
+  const [player1, setPlayer1] = useState<PlayerSummary | null>(() => {
+    if (opponentId && me) {
+      return { id: me.id, nickname: me.nickname, mmr: me.mmr }
+    }
+    return null
+  })
   const [player2, setPlayer2] = useState<PlayerSummary | null>(null)
   const [format, setFormat] = useState<GameFormat | null>(null)
   const [pickerOpen, setPickerOpen] = useState<{ slot: 1 | 2 } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!opponentId) return
+    let cancelled = false
+    api
+      .get<PlayerSummary>(`/users/${opponentId}`)
+      .then((p) => {
+        if (!cancelled) setPlayer2(p)
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : 'Не удалось загрузить оппонента')
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [opponentId])
 
   const bothSelected = player1 !== null && player2 !== null
   const canSubmit =

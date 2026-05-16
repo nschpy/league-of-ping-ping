@@ -40,3 +40,10 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans);
 }
+
+@keyframes lt-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.lt-pulse-dot { animation: lt-pulse 1.4s ease-in-out infinite; }

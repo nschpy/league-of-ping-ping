@@ -14,13 +14,6 @@ export function LiveMatchBanner({ match }: LiveMatchBannerProps) {
 
   return (
     <div className="flex items-center gap-4 px-4 py-3 rounded-lg border border-success bg-success/5">
-      <style>{`
-        @keyframes lt-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-        .lt-pulse-dot { animation: lt-pulse 1.4s ease-in-out infinite; }
-      `}</style>
 
       {/* LIVE pill */}
       <span className="bg-success text-background text-[11px] font-mono font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 shrink-0">

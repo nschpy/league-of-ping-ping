@@ -9,7 +9,7 @@ export function MatchesSkeleton() {
         <div className="flex gap-4">
           <Skeleton className="h-[60px] w-[90px] rounded-lg" />
           <Skeleton className="h-[60px] w-[90px] rounded-lg" />
-          <Skeleton className="h-[90px] w-[90px] rounded-lg" />
+          <Skeleton className="h-[60px] w-[90px] rounded-lg" />
         </div>
       </div>
 

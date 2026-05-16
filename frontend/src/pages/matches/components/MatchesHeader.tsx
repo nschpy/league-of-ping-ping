@@ -29,7 +29,9 @@ export function MatchesHeader({ matches }: MatchesHeaderProps) {
           ? 'text-muted-foreground'
           : avgDelta > 0
             ? 'text-success'
-            : 'text-destructive',
+            : avgDelta < 0
+              ? 'text-destructive'
+              : 'text-muted-foreground',
     },
   ]
 

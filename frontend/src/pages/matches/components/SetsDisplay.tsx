@@ -5,7 +5,6 @@ interface SetScore {
 
 interface SetsDisplayProps {
   sets: SetScore[]
-  outcome: 'win' | 'loss'
 }
 
 export function SetsDisplay({ sets }: SetsDisplayProps) {
