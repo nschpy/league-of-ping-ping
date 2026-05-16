@@ -1,0 +1,61 @@
+import { Link } from 'react-router-dom'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { initials, avatarColor } from '@/lib/player'
+import type { LiveMatch } from '@/lib/types/matches'
+
+interface LiveMatchBannerProps {
+  match: LiveMatch
+}
+
+export function LiveMatchBanner({ match }: LiveMatchBannerProps) {
+  const bg = avatarColor(match.opponent.id)
+  const init = initials(match.opponent.nickname)
+
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 px-4 py-3 rounded-lg border border-success bg-success/5">
+
+      {/* Top row: LIVE + avatar + info + score */}
+      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+        {/* LIVE pill */}
+        <span className="bg-success text-background text-[11px] font-mono font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 shrink-0">
+          <span className="lt-pulse-dot inline-block w-1.5 h-1.5 rounded-full bg-background" />
+          LIVE
+        </span>
+
+        {/* Opponent avatar */}
+        <Avatar className="h-8 w-8 shrink-0">
+          <AvatarFallback
+            className="text-[11px] font-mono font-bold text-background"
+            style={{ backgroundColor: bg }}
+          >
+            {init}
+          </AvatarFallback>
+        </Avatar>
+
+        {/* Info */}
+        <div className="flex flex-col flex-1 min-w-0">
+          <span className="text-foreground text-[14px] font-semibold leading-tight truncate">
+            vs <span className="font-bold">{match.opponent.nickname}</span>
+          </span>
+          <span className="text-muted-foreground text-[11px] font-mono mt-0.5">
+            {match.format} · сет {match.currentSetNumber}
+          </span>
+        </div>
+
+        {/* Score */}
+        <span
+          className="text-[28px] font-bold tabular-nums text-success shrink-0"
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
+          {match.currentSetScore.user}:{match.currentSetScore.opponent}
+        </span>
+      </div>
+
+      {/* Button: full-width on mobile, auto on desktop */}
+      <Link to={`/games/${match.id}`} className="sm:shrink-0">
+        <Button size="sm" className="w-full sm:w-auto">Смотреть матч</Button>
+      </Link>
+    </div>
+  )
+}

@@ -11,7 +11,7 @@ export function HeroPanel() {
   return (
     <div
       className="hidden lg:flex flex-col justify-between flex-[0_0_52%] relative px-14 py-10 border-r border-border overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #13131a, #0b0b0f)' }}
+      style={{ background: 'linear-gradient(180deg, var(--card), var(--background))' }}
     >
       {/* Radial glow */}
       <div

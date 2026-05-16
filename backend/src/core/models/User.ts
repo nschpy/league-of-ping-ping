@@ -5,6 +5,7 @@ export interface PublicUser {
   id: string
   email: string
   nickname: string
+  city?: string | null
   mmr: number
   role: string
 }
@@ -15,6 +16,7 @@ export interface IUser extends Document {
   passwordHash: string
   mmr: number
   role: 'user' | 'admin'
+  city?: string
   toPublicJSON(): PublicUser
 }
 
@@ -49,6 +51,12 @@ const userSchema = new Schema<IUser>(
       enum: ['user', 'admin'],
       default: 'user',
     },
+    city: {
+      type: String,
+      trim: true,
+      maxlength: 64,
+      default: undefined,
+    },
   },
   { timestamps: true },
 )
@@ -58,6 +66,7 @@ userSchema.methods['toPublicJSON'] = function (this: IUser): PublicUser {
     id: (this._id as { toString(): string }).toString(),
     email: this.email,
     nickname: this.nickname,
+    city: this.city ?? null,
     mmr: this.mmr,
     role: this.role,
   }

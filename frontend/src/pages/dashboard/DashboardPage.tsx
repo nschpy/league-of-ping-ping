@@ -1,20 +1,31 @@
-import { useAuth } from '@/hooks/useAuth'
+import { useDashboardData } from './use-dashboard-data'
+import { DashboardSkeleton } from './components/DashboardSkeleton'
+import { MmrHeroCard } from './components/MmrHeroCard'
+import { ChallengeListCard } from './components/ChallengeListCard'
+import { RecentMatchesCard } from './components/RecentMatchesCard'
+import { LeaderboardCard } from './components/LeaderboardCard'
 
 export function DashboardPage() {
-  const { user } = useAuth()
+  const { data, loading, error } = useDashboardData()
+
+  if (loading) return <DashboardSkeleton />
+
+  if (error) {
+    return (
+      <div className="p-6 md:p-8 flex items-center justify-center min-h-[40vh]">
+        <p className="text-destructive text-[14px] font-mono">{error}</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 py-24">
-      <h1
-        style={{ fontFamily: 'var(--font-display)', fontSize: 48, letterSpacing: '0.02em' }}
-        className="uppercase text-foreground"
-      >
-        Привет, <span className="text-primary">{user?.nickname}</span>
-      </h1>
-      <p className="text-muted-foreground text-[15px]">
-        MMR: <span style={{ fontFamily: 'var(--font-mono)' }} className="text-foreground">{user?.mmr ?? 1000}</span>
-      </p>
-      <p className="text-muted-foreground/50 text-[13px] mt-4">Dashboard coming soon</p>
+    <div className="p-6 md:p-8 flex flex-col gap-5">
+      <MmrHeroCard stats={data.stats} />
+      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.4fr_1fr] gap-5">
+        <ChallengeListCard suggestions={data.suggestions?.items ?? []} />
+        <RecentMatchesCard matches={data.recentGames?.items ?? []} />
+        <LeaderboardCard leaderboard={data.leaderboard} />
+      </div>
     </div>
   )
 }

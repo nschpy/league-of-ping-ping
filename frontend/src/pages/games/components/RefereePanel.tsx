@@ -19,7 +19,8 @@ export function RefereePanel({ game, side, onAction, onUndo }: Props) {
   const disabled = loading || game.status !== 'in_progress'
   const sideShort = isP1 ? 'A' : 'B'
   const currentSet = game.sets[game.sets.length - 1]
-  const hasPointsToUndo = (currentSet?.points.length ?? 0) > 0
+  const lastPoint = currentSet?.points[currentSet.points.length - 1]
+  const hasPointsToUndo = lastPoint?.scorer === side
 
   async function handleAction() {
     setLoading(true)

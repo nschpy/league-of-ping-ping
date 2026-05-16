@@ -7,6 +7,8 @@ import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { AppShell } from '@/components/layout/AppShell'
 import { CreateGamePage } from '@/pages/games/CreateGamePage'
 import { GameViewPage } from '@/pages/games/GameViewPage'
+import { MatchesPage } from '@/pages/matches/MatchesPage'
+import { ProfilePage } from '@/pages/profile/ProfilePage'
 
 export const router = createBrowserRouter([
   {
@@ -27,12 +29,15 @@ export const router = createBrowserRouter([
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'games/new', element: <CreateGamePage /> },
           { path: 'games/:id', element: <GameViewPage /> },
+          { path: 'matches', element: <MatchesPage /> },
+          { path: 'profile', element: <ProfilePage /> },
+          { path: 'profile/:id', element: <ProfilePage /> },
         ],
       },
     ],
   },
   {
     path: '*',
-    element: <div style={{ padding: '2rem', color: '#fff', fontFamily: 'Inter' }}>404 — страница не найдена</div>,
+    element: <div style={{ padding: '2rem', fontFamily: 'Inter' }}>404 — страница не найдена</div>,
   },
 ])

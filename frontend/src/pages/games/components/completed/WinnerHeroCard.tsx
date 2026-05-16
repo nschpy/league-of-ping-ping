@@ -71,7 +71,7 @@ export function WinnerHeroCard({ game }: Props) {
       {/* TOP: centered content */}
       <div className="flex flex-col items-center text-center gap-6 p-8 sm:p-12">
         {/* WINNER badge with crown icons */}
-        <div className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-1.5 shadow-[0_0_32px_rgb(255_91_31/0.55)]">
+        <div className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-1.5 shadow-[0_0_32px_var(--primary)]">
           <Crown className="h-3.5 w-3.5 text-primary-foreground" />
           <span className="font-display text-[13px] uppercase tracking-[0.24em] text-primary-foreground">
             ПОБЕДИТЕЛЬ
