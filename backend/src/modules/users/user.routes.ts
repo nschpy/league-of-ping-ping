@@ -123,7 +123,7 @@ async function userRoutesPlugin(app: FastifyInstance): Promise<void> {
     onRequest: app.authenticate,
     handler: async (request, reply) => {
       const userId = request.user.sub
-      const limit = request.query.limit ? Math.min(Number.parseInt(request.query.limit, 10), 100) : 5
+      const limit = request.query.limit ? Number.parseInt(request.query.limit, 10) : 5
       const outcome = request.query.outcome
       const result = await UserService.getRecentGames(userId, limit, outcome)
       return reply.send(result)

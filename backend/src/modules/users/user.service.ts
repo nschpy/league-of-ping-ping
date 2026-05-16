@@ -263,13 +263,15 @@ export const UserService = {
   },
 
   async getLiveGame(userId: string): Promise<LiveGameResult> {
-    const g = await GameModel.findOne({
+    const results = await GameModel.find({
       status: 'in_progress',
       $or: [{ player1Id: userId }, { player2Id: userId }],
     })
       .populate<{ player1Id: PopulatedUser; player2Id: PopulatedUser }>('player1Id player2Id', 'nickname mmr')
       .sort({ startedAt: -1 })
-      .lean<PopulatedGame>()
+      .limit(1)
+      .lean<PopulatedGame[]>()
+    const g = results[0] ?? null
 
     if (g == null) return null
 
