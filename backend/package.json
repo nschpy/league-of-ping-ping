@@ -4,7 +4,9 @@
   "description": "",
   "main": ".build/server.js",
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "build:dev": "tsc",
+    "start": "node .build/server.js",
     "start:dev": "tsx watch src/server.ts"
   },
   "keywords": [],

@@ -21,28 +21,42 @@ export function GameViewPage() {
 
   const isReferee = !!(game && user && user.id === game.referee.id)
 
-  async function fetchGame() {
+  const refreshGame = useCallback(async () => {
     try {
       const data = await api.get<Game>(`/games/${id}`)
       setGame(data)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка загрузки матча')
     }
-  }
-
-  useEffect(() => {
-    fetchGame()
   }, [id])
 
   useEffect(() => {
-    if (!game) return
-    if (game.status === 'in_progress' && !isReferee) {
-      pollRef.current = setInterval(fetchGame, 3000)
+    let cancelled = false
+
+    api
+      .get<Game>(`/games/${id}`)
+      .then((data) => {
+        if (!cancelled) setGame(data)
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : 'Ошибка загрузки матча')
+        }
+      })
+
+    return () => {
+      cancelled = true
     }
+  }, [id])
+
+  useEffect(() => {
+    if (game?.status !== 'in_progress' || isReferee) return
+
+    pollRef.current = setInterval(refreshGame, 3000)
     return () => {
       if (pollRef.current) clearInterval(pollRef.current)
     }
-  }, [game?.status, isReferee])
+  }, [game?.status, isReferee, refreshGame])
 
   const addPoint = useCallback(async (scorer: 'p1' | 'p2') => {
     try {
