@@ -21,8 +21,10 @@ export async function buildApp(): Promise<FastifyInstance> {
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   })
-  await app.register(swagger, { openapi: { info: { title: 'League API', version: '1.0.0' } } })
-  await app.register(swaggerUI, { routePrefix: '/docs' })
+  if (config.NODE_ENV !== 'production') {
+    await app.register(swagger, { openapi: { info: { title: 'League API', version: '1.0.0' } } })
+    await app.register(swaggerUI, { routePrefix: '/docs' })
+  }
   await app.register(mongoosePlugin)
   await app.register(authPlugin)
   await app.register(authRoutes)
