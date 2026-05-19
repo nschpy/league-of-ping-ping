@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { initials } from '@/lib/player'
+import { fetchProfile } from '@/lib/profile-api'
 import type { PlayerSummary } from '@/lib/types'
+import type { ProfileStats } from '@/lib/types/profile'
 
 interface PlayerSlotProps {
   player: PlayerSummary | null
@@ -26,11 +29,43 @@ function Stat({ label, value }: StatProps) {
   )
 }
 
+function usePlayerStats(playerId: string | undefined): ProfileStats | null {
+  const [stats, setStats] = useState<ProfileStats | null>(null)
+
+  useEffect(() => {
+    if (!playerId) {
+      setStats(null)
+      return
+    }
+    let cancelled = false
+    setStats(null)
+    fetchProfile(playerId)
+      .then((res) => {
+        if (!cancelled) setStats(res.stats)
+      })
+      .catch(() => {
+        if (!cancelled) setStats(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [playerId])
+
+  return stats
+}
+
 export function PlayerSlot({ player, side, label, role, onPick }: PlayerSlotProps) {
   const isA = side === 'A'
   const topBorder = isA ? 'border-t-primary' : 'border-t-blue-500'
   const topStripe = isA ? 'bg-primary' : 'bg-blue-500'
   const avatarBg = isA ? 'bg-primary text-primary-foreground' : 'bg-blue-500 text-white'
+
+  const stats = usePlayerStats(player?.id)
+  const winrateValue = stats?.winRate ? `${stats.winRate.percent}%` : '—'
+  const matchesValue = stats ? String(stats.totalGames) : '—'
+  const streakValue = stats?.currentStreak
+    ? `${stats.currentStreak.count}${stats.currentStreak.kind}`
+    : '—'
 
   if (!player) {
     return (
@@ -111,9 +146,9 @@ export function PlayerSlot({ player, side, label, role, onPick }: PlayerSlotProp
       </div>
 
       <div className="grid grid-cols-3 gap-2 px-5 pb-4">
-        <Stat label="Винрейт" value="—" />
-        <Stat label="Матчей" value="—" />
-        <Stat label="Серия" value="—" />
+        <Stat label="Винрейт" value={winrateValue} />
+        <Stat label="Матчей" value={matchesValue} />
+        <Stat label="Серия" value={streakValue} />
       </div>
 
       <div className="flex items-center justify-between border-t border-border/60 px-5 py-3">
